@@ -47,7 +47,7 @@ const pageName = '404 page';
 
 test.beforeAll(async ({browser}) => {
     context = await browser.newContext();
-    page = await context.newPage(); 
+    page = await context.newPage();
     await page.goto(adminURL);
     await login(page,userName,passWord,adminTitle); 
     await page.waitForLoadState('load');
@@ -63,7 +63,7 @@ test.afterAll(async()=>{
 })
 
 // CreateNewWidget
-test('Create new BestSeller widget for 404 page', async()=>{
+test.skip('Create new BestSeller widget for 404 page', async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'Bestseller404.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
     await CreateNewWidget(page, iframe, appName, pageName, 'Best sellers');

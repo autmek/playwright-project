@@ -22,6 +22,7 @@ module.exports = defineConfig({
     trace: 'on',
     screenshot: 'only-on-failure',
     headless: false, // to open browser
+    args: ['--start-minimized'],
     browserName : 'chromium',
     video: 'retain-on-failure',
     viewport: { width: 1280, height: 720 },
