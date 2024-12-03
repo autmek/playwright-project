@@ -45,7 +45,7 @@ const{
     productOnstore,Main_product,Secondary_product,Category,Collection,Tag,price
 }= require('../testUtils/constants');
 
-let context, iframe, widgetID, newPage, page, storeURL, pageURL;
+let context, iframe, widgetID, newPage, page, storeURL;
 
 // Constants (Change according to the admin stores used for testing.)
 const newtitle = 'Updated BestSeller - PP';
