@@ -268,6 +268,14 @@ async function Verify_variableToCart(newPage,widgetID,storeURL){
     expect(cartOption).toContain(selectedOption);
     await newPage.goBack();
 }
+async function recomProductsOnWidget(newPage,widgetID,recommendation){
+    const newWidg = await WidgetIsDisplayed(newPage,widgetID);
+    const productTitles = await newWidg.locator('.sf-product-title').allTextContents();
+    for(const recom of recommendation){
+        expect(productTitles).toContain(recom);
+    }
+}
+
 module.exports = { 
     addToCart,
     deleteFromCart,
@@ -290,4 +298,5 @@ module.exports = {
     NavigateToPage,
     editverify_Title,
     Verify_variableToCart,
+    recomProductsOnWidget,
  };

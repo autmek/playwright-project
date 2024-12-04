@@ -72,7 +72,7 @@ test.afterAll(async()=>{
     await context.close();
 })
 
-// CreateNewWidget
+// 1. Create new Widget
 test('Create new RecentViewed widget for Product page', async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'RecentviewPP.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
@@ -82,15 +82,8 @@ test('Create new RecentViewed widget for Product page', async()=>{
     await ReloadandWait_Newpage(newPage)
     await WidgetIsDisplayed(newPage, widgetID);
 });
-test('Add variable product from widget to cart', async () => {
-    if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'RecentviewPP.json'))); 
-        widgetID = data.widgetID;
-    }
-    await Verify_variableToCart(newPage,widgetID,storeURL);
-});
 
-// 2. Verify editing widget title
+// 2. Edit widget title
 test('Edit Widget title', async ()=> {
     //widgetID = '0072';
     await NavigatetoApp(page,appName);
@@ -104,7 +97,26 @@ test('Edit Widget title', async ()=> {
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);                
 });
 
-// DisplayRules
+// 3. Add Variable product from widget to cart
+test('Add variable product from widget to cart', async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'RecentviewPP.json'))); 
+        widgetID = data.widgetID;
+    }
+    await NavigateToPage(newPage,pageName,storeURL,productOnstore);
+    await Verify_variableToCart(newPage,widgetID,storeURL);
+});
+
+/*
+4. DisplayRules
+    i). Category(Include/Exclude)
+    ii). Product(Include/Exclude)
+    iii). Collection(Include/Exclude)
+    iv). Tag(Include/Exclude)
+    v). User(Guest/Customer)
+    vi). Price(GreaterThan/LessThan)
+    vii). View Date(Current/Future)
+*/
 test.describe('Display Rules', async()=>{
 
     test.beforeAll(async()=>{
@@ -249,7 +261,22 @@ test.describe('Display Rules', async()=>{
     
 });
 
-// Customize
+/*
+5. Customization
+    i). Total Number of products on widget
+    ii). Display style on desktop (Grid/Slider/List)
+    iii). Title alignment(Left/Centre/Right)
+    iv). Title font color
+    v). Product price display
+    vi). Product title alignment(Left/Centre/Right)
+    vii). Product title font color
+    viii). Cart button display
+    ix). Button(AddtoCart & Select Option) texts
+    x). Button Action (Redirect to cart/ Stay on page/ Redirect to checkout)
+    xi). Button background color
+    xii). Button Color
+    xiii). Responsiveness
+*/
 test.describe('Customise widget', async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
@@ -268,7 +295,6 @@ test.describe('Customise widget', async()=>{
         await page.waitForTimeout(3000);
     }); 
     test.afterAll(async()=>{
-        //Closing customize window
         await iframe.locator('.Polaris-FullscreenBar__BackAction').click();
     });
     test('The total number of products to display', async()=>{    

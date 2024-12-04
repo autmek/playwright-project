@@ -21,6 +21,7 @@ const {
     editverify_Title,
     NavigateToPage,
     Verify_variableToCart,
+    recomProductsOnWidget,
 } = require('../testUtils/CommonFunctions');
 
 // Functions for customisation
@@ -127,7 +128,7 @@ test.describe('Products to Recommend',()=>{
         await manualRecommendation('Specific product',productOnstore);
         await Savewidget(iframe,page);
         await NavigateToPage(newPage,pageName,storeURL,Main_product);
-        await recomProductsOnWidget();
+        await recomProductsOnWidget(newPage,widgetID,recentViewed_products);
         await NavigateToPage(newPage,pageName,storeURL,Secondary_product);
         await WidgetNotDisplayed(newPage,widgetID);
     });
@@ -138,7 +139,7 @@ test.describe('Products to Recommend',()=>{
         await manualRecommendation('Specific collection',triggerCollection);
         await Savewidget(iframe,page);
         await NavigateToPage(newPage,pageName,storeURL,Main_product);
-        await recomProductsOnWidget();
+        await recomProductsOnWidget(newPage,widgetID,recentViewed_products);
         await NavigateToPage(newPage,pageName,storeURL,Secondary_product);
         await WidgetNotDisplayed(newPage,widgetID);
     });
@@ -195,13 +196,6 @@ async function manualRecommendation(triggerOption,triggerValue){
     }
     await iframe.locator('.sf-cs-modal-footer').getByRole('button',{name:'Confirm'}).click();
     await iframe.getByRole('button',{name: 'Continue'}).click();
-}
-async function recomProductsOnWidget(){
-    const newWidg = await WidgetIsDisplayed(newPage,widgetID);
-    const productTitles = await newWidg.locator('.sf-product-title').allTextContents();
-    for(const recom of recentViewed_products){
-        expect(productTitles).toContain(recom);
-    }
 }
 
 // 4. Add Variable product from widget to cart

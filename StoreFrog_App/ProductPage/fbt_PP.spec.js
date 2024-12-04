@@ -18,6 +18,7 @@ const {
     ViewDate,
     UserRole,
     NavigateToPage,
+    recomProductsOnWidget,
 } = require('../testUtils/CommonFunctions');
 
 // FBT function
@@ -79,7 +80,7 @@ test.afterAll(async()=>{
     await context.close();
 })
 
-// CreateNewWidget
+// 1. Create new Widget
 test('Create new FBT widget for Product page', async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'fbtPP.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
@@ -89,7 +90,7 @@ test('Create new FBT widget for Product page', async()=>{
     await ReloadandWait_Newpage(newPage)
     await WidgetIsDisplayed(newPage, widgetID);
 });
-
+// 2. Edit widget title
 test('Edit widget title', async()=>{
     //widgetID = '0081';
     await NavigatetoApp(page,appName);
@@ -102,6 +103,13 @@ test('Edit widget title', async()=>{
     await editWidget(iframe,page,widgetID);
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);                 
 });
+/*
+3. Products to recommend 
+    i). Manual recommendations
+    ii). Automatic recommendation
+    iii). Random recommendation (same collection/same type/ same category)
+    iv). Global recommendation
+*/
 
 test.describe('Products to recommend', ()=>{
     test.beforeAll(async()=>{
@@ -126,7 +134,7 @@ test.describe('Products to recommend', ()=>{
         await setManualRecommendation(iframe,page,triggerProduct,recom_Products);
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage)
-        await WidgetIsDisplayed(newPage,widgetID);
+        await recomProductsOnWidget(newPage,widgetID,recom_Products);
         await NavigateToPage(newPage,pageName,storeURL,Secondary_product);
         await WidgetNotDisplayed(newPage,widgetID);
     })
@@ -152,18 +160,31 @@ test.describe('Products to recommend', ()=>{
         await setGlobalRecommendation(iframe,page,recom_Products);
         await Savewidget(iframe,page);
         await NavigateToPage(newPage,pageName,storeURL,productOnstore);
-        await WidgetIsDisplayed(newPage,widgetID);
+        await recomProductsOnWidget(newPage,widgetID,recom_Products);
+        await NavigateToPage(newPage,pageName,storeURL,Secondary_product);
+        await recomProductsOnWidget(newPage,widgetID,recom_Products);
     });
 });
+// 4. Add Variable product from widget to cart
 test('Add variable product from widget to cart', async () => {
     if(!widgetID){
         const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fbtPP.json'))); 
         widgetID = data.widgetID;
     }
+    await NavigateToPage(newPage,pageName,storeURL,productOnstore);
     await Verify_variableToCart(newPage,widgetID,storeURL);
 });
 
-// DisplayRules
+/*
+5. DisplayRules
+    i). Category(Include/Exclude)
+    ii). Product(Include/Exclude)
+    iii). Collection(Include/Exclude)
+    iv). Tag(Include/Exclude)
+    v). User(Guest/Customer)
+    vi). Price(GreaterThan/LessThan)
+    vii). View Date(Current/Future)
+*/
 test.describe('Display Rules', async()=>{
 
     test.beforeAll(async()=>{
@@ -308,6 +329,9 @@ test.describe('Display Rules', async()=>{
     
 });
 
+/*
+6. Discounts
+*/
 test.describe('FBT - Discounts', async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
