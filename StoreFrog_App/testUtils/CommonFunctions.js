@@ -25,7 +25,7 @@ async function login(page,userName,passWord,adminTitle){
 
     // Confirm login by checking title
     await expect(page).toHaveTitle(adminTitle);
-    console.log('Successfully loggedIn to shopify Admin page');
+    console.log('--> Successfully LoggedIn to shopify Admin page');
 }
 
 async function CreateNewWidget(page,iframe,appName, pageName, widgetType){
@@ -39,6 +39,7 @@ async function CreateNewWidget(page,iframe,appName, pageName, widgetType){
     const modal = await iframe.locator('.Polaris-Modal-Dialog');
     await expect(modal).toBeVisible();
     await iframe.getByRole('button', { name: 'Okay' }).click();
+    console.log(`✅ ${pageName} - ${widgetType} is created`);
 }
 
 async function NavigatetoApp(page,appName){
@@ -58,9 +59,11 @@ async function FindWidgetID(iframe){
 async function editWidget(iframe,page,widgetID){
     await page.waitForTimeout(3000);
     await iframe.locator('.Polaris-DataTable__Table tbody tr').last().waitFor();
-    const widgRow = await iframe.locator(`.Polaris-DataTable__Table tbody tr:has(td:has-text("${widgetID}"))`); //Row with the required widget id
-    const targetCell = await widgRow.locator('td:nth-child(4)');
-    await targetCell.locator('div:nth-child(3)').click({ delay: 100 }); //click on edit icon
+    const editIcon = '.sf-edit-div .Polaris-Button .Polaris-Icon__Svg';
+    const widgRow = await iframe.locator(`.Polaris-DataTable__Table tbody tr:has(td:has-text("${widgetID}"))`);
+    await widgRow.locator(editIcon).click({delay: 100});
+    //const targetCell = await widgRow.locator('td:nth-child(4)');
+    //await targetCell.locator('div:nth-child(3)').click({ delay: 100 }); //click on edit icon
 }
 
 async function NavigateToStore(page){
@@ -231,7 +234,6 @@ async function editverify_Title(iframe,page,newPage,widgetID,newtitle){
     const newWidg = await WidgetIsDisplayed(newPage,widgetID);
     const widg_title = await newWidg.locator('.sf-widget-title').textContent();
     expect(widg_title).toBe(newtitle); 
-
 }
 async function Verify_variableToCart(newPage,widgetID,storeURL){
     const newWidg = await WidgetIsDisplayed(newPage,widgetID);

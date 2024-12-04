@@ -6,6 +6,7 @@ const adminTitle = 'sf-automationstore · Home · Shopify'; // To confirm admin 
 const appName = 'SF Product Recommendations'; //Live appName
 //const appName = 'Storefrog Recommendations '; //Staging appName
 
+//Recent viewed products also used for manual recommendation of related products on product page
 const recentViewed_products = [
     'Black Beanbag',
     'Anchor Bracelet',
@@ -14,9 +15,9 @@ const recentViewed_products = [
     'Copper Light',
     'Clay Plant Pot',
     'Pink Armchair',
-    'Cream Sofa',
     '7 Shakra Bracelet',
 ];
+
 
 //Customization
 const total_productsOn = '5'; //[5-20]

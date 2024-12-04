@@ -1,4 +1,4 @@
-const {test } = require('@playwright/test');
+const {test,expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 // Common functions used
@@ -41,9 +41,13 @@ const {
 const{
     userName, passWord, adminURL, adminTitle, appName,
     total_productsOn, products_perRow, edit_cartButton, edit_chooseButton,
-    productOnstore,Main_product,Secondary_product,Category,Collection,Tag,price
+    productOnstore,Main_product,Secondary_product,Category,Collection,Tag,price,
+    recentViewed_products,
+    triggerCollection,
 }= require('../testUtils/constants');
-
+const {
+    deleteCrossSell,
+} = require('../testUtils/CrossSell');
 
 let context, iframe, widgetID, newPage, page, storeURL;
 
@@ -67,7 +71,7 @@ test.afterAll(async()=>{
     await context.close();
 })
 
-// CreateNewWidget
+// 1. Create new Widget
 test('Create new Related product widget for Product page', async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'RelatedPP.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
@@ -77,15 +81,8 @@ test('Create new Related product widget for Product page', async()=>{
     await ReloadandWait_Newpage(newPage)
     await WidgetIsDisplayed(newPage, widgetID);
 });
-test('Add variable product from widget to cart', async () => {
-    if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'RelatedPP.json'))); 
-        widgetID = data.widgetID;
-    }
-    await Verify_variableToCart(newPage,widgetID,storeURL);
-});
 
-// 2. Verify editing widget title
+// 2. Edit widget title
 test('Edit Widget title', async ()=> {
     //widgetID = '0056';
     await NavigatetoApp(page,appName);
@@ -99,7 +96,16 @@ test('Edit Widget title', async ()=> {
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);                 
 });
 
-// Products to recommend
+/*
+3. Products to recommend 
+    i). Automatic recommendation
+    ii). Collection of currently viewing product
+    iii). Type of currently viewing product
+    iv). Vendor of currently viewing product
+    v). Category of currently viewing product
+    vi). Tag of currently viewing product
+    vii). Manual Recommendation
+*/
 test.describe('Products to Recommend',()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
@@ -114,11 +120,27 @@ test.describe('Products to Recommend',()=>{
         await ReloadandWait_Newpage(newPage)
         await WidgetIsDisplayed(newPage,widgetID);
     });
-    test('Products to recommends - Automatic', async ()=> {
-        await iframe.getByText('Automatic').click();
+    test(`Manual Recommendation - Specific product`,async()=>{
+        await iframe.getByText('Manual recommendation').click();
+        await iframe.getByRole('button',{name:/Manage bundles/}).click();
+        await deleteCrossSell(iframe,page);
+        await manualRecommendation('Specific product',productOnstore);
         await Savewidget(iframe,page);
-        await ReloadandWait_Newpage(newPage)
-        await WidgetIsDisplayed(newPage,widgetID);
+        await NavigateToPage(newPage,pageName,storeURL,Main_product);
+        await recomProductsOnWidget();
+        await NavigateToPage(newPage,pageName,storeURL,Secondary_product);
+        await WidgetNotDisplayed(newPage,widgetID);
+    });
+    test.skip(`Manual Recommendation - Specific collection`,async()=>{
+        await iframe.getByText('Manual recommendation').click();
+        await iframe.getByRole('button',{name:/Manage bundles/}).click();
+        await deleteCrossSell(iframe,page);
+        await manualRecommendation('Specific collection',triggerCollection);
+        await Savewidget(iframe,page);
+        await NavigateToPage(newPage,pageName,storeURL,Main_product);
+        await recomProductsOnWidget();
+        await NavigateToPage(newPage,pageName,storeURL,Secondary_product);
+        await WidgetNotDisplayed(newPage,widgetID);
     });
     const filterType = [
         'Collection of currently viewing product',
@@ -143,10 +165,65 @@ test.describe('Products to Recommend',()=>{
             await WidgetIsDisplayed(newPage,widgetID);
         });
     }
+    test('Products to recommends - Automatic', async ()=> {
+        await iframe.getByText('Automatic').click();
+        await Savewidget(iframe,page);
+        await ReloadandWait_Newpage(newPage)
+        await WidgetIsDisplayed(newPage,widgetID);
+    });
+
+});
+async function manualRecommendation(triggerOption,triggerValue){
+    await page.waitForTimeout(1000);
+    const Recom_Modal = await iframe.locator('.Polaris-Modal-Section');
+    const addBundle = await iframe.getByRole('button',{name: 'Add new bundle'});
+    if(!await Recom_Modal.isVisible()){
+        await addBundle.first().click();
+    }
+    await Recom_Modal.getByText(triggerOption).click();
+    await iframe.getByRole('button',{name:"Next"}).click();
+    await Recom_Modal.locator('.Polaris-TextField__Input').fill(triggerValue);
+    await page.waitForTimeout(500);
+    await Recom_Modal.getByLabel(triggerValue).locator('.Polaris-Checkbox').click();
+    await page.waitForTimeout(1000);
+    await iframe.getByRole('button',{name:"Next"}).click();
+    for(const Recommendation of recentViewed_products){
+        await iframe.locator('.Polaris-TextField__Input').fill(Recommendation);
+        await page.waitForTimeout(1000);
+        await iframe.getByLabel(Recommendation).locator('.Polaris-Checkbox').click();
+        await page.waitForTimeout(1000);
+    }
+    await iframe.locator('.sf-cs-modal-footer').getByRole('button',{name:'Confirm'}).click();
+    await iframe.getByRole('button',{name: 'Continue'}).click();
+}
+async function recomProductsOnWidget(){
+    const newWidg = await WidgetIsDisplayed(newPage,widgetID);
+    const productTitles = await newWidg.locator('.sf-product-title').allTextContents();
+    for(const recom of recentViewed_products){
+        expect(productTitles).toContain(recom);
+    }
+}
+
+// 4. Add Variable product from widget to cart
+test('Add variable product from widget to cart', async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'RelatedPP.json'))); 
+        widgetID = data.widgetID;
+    }
+    await NavigateToPage(newPage,pageName,storeURL,productOnstore);
+    await Verify_variableToCart(newPage,widgetID,storeURL);
 });
 
-
-// DisplayRules
+/*
+5. DisplayRules
+    i). Category(Include/Exclude)
+    ii). Product(Include/Exclude)
+    iii). Collection(Include/Exclude)
+    iv). Tag(Include/Exclude)
+    v). User(Guest/Customer)
+    vi). Price(GreaterThan/LessThan)
+    vii). View Date(Current/Future)
+*/
 test.describe('Display Rules', async()=>{
 
     test.beforeAll(async()=>{
@@ -291,7 +368,22 @@ test.describe('Display Rules', async()=>{
     
 });
 
-// Customize
+/*
+6. Customization
+    i). Total Number of products on widget
+    ii). Display style on desktop (Grid/Slider/List)
+    iii). Title alignment(Left/Centre/Right)
+    iv). Title font color
+    v). Product price display
+    vi). Product title alignment(Left/Centre/Right)
+    vii). Product title font color
+    viii). Cart button display
+    ix). Button(AddtoCart & Select Option) texts
+    x). Button Action (Redirect to cart/ Stay on page/ Redirect to checkout)
+    xi). Button background color
+    xii). Button Color
+    xiii). Responsiveness
+*/
 test.describe('Customise widget', async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';

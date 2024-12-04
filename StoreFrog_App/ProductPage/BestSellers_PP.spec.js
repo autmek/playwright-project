@@ -1,4 +1,4 @@
-const {test, expect } = require('@playwright/test');
+const {test } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 // Common functions used
@@ -44,13 +44,9 @@ const{
     total_productsOn, products_perRow, edit_cartButton, edit_chooseButton,
     productOnstore,Main_product,Secondary_product,Category,Collection,Tag,price
 }= require('../testUtils/constants');
-
 let context, iframe, widgetID, newPage, page, storeURL;
-
-// Constants (Change according to the admin stores used for testing.)
 const newtitle = 'Updated BestSeller - PP';
 const pageName = 'Product page';
-
 
 test.beforeAll(async ({browser}) => {
     context = await browser.newContext();
@@ -69,7 +65,7 @@ test.afterAll(async()=>{
     await context.close();
 })
 
-// CreateNewWidget
+// 1. Create new Widget
 test('Create new BestSeller widget for Product page', async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'BestsellerPP.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
@@ -79,14 +75,7 @@ test('Create new BestSeller widget for Product page', async()=>{
     await ReloadandWait_Newpage(newPage)
     await WidgetIsDisplayed(newPage, widgetID);
 });
-test('Add variable product from widget to cart', async () => {
-    if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'BestsellerPP.json'))); 
-        widgetID = data.widgetID;
-    }
-    await Verify_variableToCart(newPage,widgetID,storeURL);
-});
-// EditWidgetTitle
+// 2. Edit widget title
 test('Edit Widget title', async ()=> {
     //widgetID = '0001';
     await NavigatetoApp(page,appName);
@@ -100,7 +89,14 @@ test('Edit Widget title', async ()=> {
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);            
 });
 
-// Products to recommend
+/*
+3. Products to recommend 
+    i). Collection of currently viewing product
+    ii). Type of currently viewing product
+    iii). Vendor of currently viewing product
+    iv). Category of currently viewing product
+    v). Storewide best-selling products
+*/
 test.describe('Products to Recommend',()=>{
     const filterValues = [
         'collections',
@@ -134,7 +130,26 @@ test.describe('Products to Recommend',()=>{
     }
 });
 
-// DisplayRules
+// 4. Add Variable product from widget to cart
+test('Add variable product from widget to cart', async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'BestsellerPP.json'))); 
+        widgetID = data.widgetID;
+    }
+    await NavigateToPage(newPage,pageName,storeURL,productOnstore);
+    await Verify_variableToCart(newPage,widgetID,storeURL);
+});
+
+/*
+5. DisplayRules
+    i). Category(Include/Exclude)
+    ii). Product(Include/Exclude)
+    iii). Collection(Include/Exclude)
+    iv). Tag(Include/Exclude)
+    v). User(Guest/Customer)
+    vi). Price(GreaterThan/LessThan)
+    vii). View Date(Current/Future)
+*/
 test.describe('Display Rules', async()=>{
 
     test.beforeAll(async()=>{
@@ -279,7 +294,22 @@ test.describe('Display Rules', async()=>{
     
 });
 
-// Customize
+/*
+6. Customization
+    i). Total Number of products on widget
+    ii). Display style on desktop (Grid/Slider/List)
+    iii). Title alignment(Left/Centre/Right)
+    iv). Title font color
+    v). Product price display
+    vi). Product title alignment(Left/Centre/Right)
+    vii). Product title font color
+    viii). Cart button display
+    ix). Button(AddtoCart & Select Option) texts
+    x). Button Action (Redirect to cart/ Stay on page/ Redirect to checkout)
+    xi). Button background color
+    xii). Button Color
+    xiii). Responsiveness
+*/
 test.describe('Customise widget', async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
