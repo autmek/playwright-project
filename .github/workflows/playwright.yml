@@ -1,8 +1,8 @@
 name: Playwright Tests
 
 on:
-  schedule:
-    - cron: '30 12 * * *'  # Runs at 6:00 PM IST every day
+  #schedule:
+   # - cron: '30 12 * * *'  # Runs at 6:00 PM IST every day
   workflow_dispatch:  # This allows you to manually trigger the workflow if needed
 
 jobs:
