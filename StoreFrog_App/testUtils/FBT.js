@@ -4,6 +4,7 @@ const {
     WidgetIsDisplayed,
     Savewidget,
     NavigateToPage,
+    deleteFromCart,
 } = require('./CommonFunctions');
 const {
     Customise_SaveChanges,
@@ -205,28 +206,38 @@ async function discountApplied(newWidg,discountValue,Dtype){
     const discountText_onStore = await newWidg.locator('.sf-discount-text');
     await expect(discountText_onStore).toBeVisible();
     const discountText = await discountText_onStore.innerText();
-    let expectedText;
-    if(Dtype === '%'){
-        expectedText = `${discountValue}${Dtype}`;
-    }else{
-        expectedText = `${Dtype}${discountValue}`;
-    }
+    const expectedText = Dtype === '%' ? `${discountValue}${Dtype}` : `${Dtype}${discountValue}`;
     expect(discountText).toContain(expectedText);
+
+    const tot_Price = await newWidg.locator('.sf-tot-price strong').innerText();
+    const original_Price = await newWidg.locator('.sf-original-price').innerText();
+    const totalPrice = parseFloat(tot_Price.replace(/[^\d.]/g, ''));
+    const originalPrice = parseFloat(original_Price.replace(/[^\d.]/g, ''));
+
     if(Dtype === '%'){
-        const tot_Price = await newWidg.locator('.sf-tot-price strong').innerText();
-        const original_Price = await newWidg.locator('.sf-original-price').innerText();
-        const totalPrice = parseFloat(tot_Price.replace(/[^\d.]/g, ''));
-        const originalPrice = parseFloat(original_Price.replace(/[^\d.]/g, ''));
         const DiscountPercentage = ((originalPrice - totalPrice)/originalPrice)*100;
         expect(DiscountPercentage.toString()).toEqual(discountValue);
     }else{
-        const tot_Price = await newWidg.locator('.sf-tot-price strong').innerText();
-        const original_Price = await newWidg.locator('.sf-original-price').innerText();
-        const totalPrice = parseFloat(tot_Price.replace(/[^\d.]/g, ''));
-        const originalPrice = parseFloat(original_Price.replace(/[^\d.]/g, ''));
         const DiscountAmount = (originalPrice - totalPrice);
         expect(DiscountAmount.toString()).toEqual(discountValue);
     }
+    return totalPrice;
+}
+async function discountAddedtoCart(newPage,newWidg,storeURL,totalPrice){
+    await newWidg.locator('.sf-fbt-add-to-cart-btn').click();
+    await newPage.waitForTimeout(3000);
+    const urlnow = await newPage.url();
+    if(! urlnow.includes('cart')){
+        await NavigateToPage(newPage,'Cart page',storeURL);
+    }
+    const tot_Price = await newPage.locator('.totals__total-value').innerText();
+    const cartTotal = parseFloat(tot_Price.replace(/[^\d.]/g, ''));
+    expect(cartTotal).toBe(totalPrice);
+    await deleteFromCart(newPage);
+    await newPage.goBack();
+
+
+
 }
 
 async function totalPriceDisplay(iframe,page,newPage,widgetID,endis_able){
@@ -489,6 +500,8 @@ async function Verify_variableToCart(newPage,widgetID,storeURL){
     const cartItem = await newPage.locator(`.cart-item__details:has-text("${variableProduct}")`);
     const cartOption = await cartItem.locator('dl .product-option dd').innerText();
     expect(cartOption).toContain(selectedOption);
+    await deleteFromCart(newPage);
+    await newPage.goBack();
 }
 
 module.exports = { 
@@ -511,4 +524,5 @@ module.exports = {
     discountColor,
     editverify_Title,
     Verify_variableToCart,
+    discountAddedtoCart,
 }

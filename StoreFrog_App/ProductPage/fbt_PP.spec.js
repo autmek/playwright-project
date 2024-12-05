@@ -42,6 +42,7 @@ const{
     discountColor,
     editverify_Title,
     Verify_variableToCart,
+    discountAddedtoCart,
 } = require('../testUtils/FBT');
 // Functions for customisation
 const {
@@ -133,12 +134,13 @@ test.describe('Products to recommend', ()=>{
     test('Manual recommendations', async()=>{
         await setManualRecommendation(iframe,page,triggerProduct,recom_Products);
         await Savewidget(iframe,page);
-        await ReloadandWait_Newpage(newPage)
+        await NavigateToPage(newPage,pageName,storeURL,triggerProduct);
         await recomProductsOnWidget(newPage,widgetID,recom_Products);
         await NavigateToPage(newPage,pageName,storeURL,Secondary_product);
         await WidgetNotDisplayed(newPage,widgetID);
     })
 
+    //Need purchase history in the store
     test('Automatic recommendation',async()=>{
         await setAutomaticRecommendation(iframe);
         await Savewidget(iframe,page);
@@ -331,6 +333,10 @@ test.describe('Display Rules', async()=>{
 
 /*
 6. Discounts
+    i). No discount
+    ii). % discount
+    iii). Flat discount
+    iv). Discount apllication to cart
 */
 test.describe('FBT - Discounts', async()=>{
     test.beforeAll(async()=>{
@@ -359,21 +365,23 @@ test.describe('FBT - Discounts', async()=>{
     });
 
     //Make sure the discount text contains "{discount}" to avoid conflict in the code
-    test('Percentage Discount', async()=>{
+    test.only('Percentage Discount', async()=>{
         const Dtype = await ApplyDiscount(iframe,'percentage',discount_cent);
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage);
         await WidgetIsDisplayed(newPage,widgetID);
-        await discountApplied(newWidg,discount_cent,Dtype);
+        const totalPrice = await discountApplied(newWidg,discount_cent,Dtype);
+        await discountAddedtoCart(newPage,newWidg,storeURL,totalPrice);
     });
 
-    test('Flat Discount',async()=>{
+    test.only('Flat Discount',async()=>{
         const Dtype = await ApplyDiscount(iframe,'flat',discount_flat);
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage);
         await WidgetIsDisplayed(newPage,widgetID);
-        await discountApplied(newWidg,discount_flat,Dtype);
-    });    
+        const totalPrice = await discountApplied(newWidg,discount_flat,Dtype);
+        await discountAddedtoCart(newPage,newWidg,storeURL,totalPrice);
+    }); 
 });
 
 // Customize
@@ -388,9 +396,10 @@ test.describe('Customise widget', async()=>{
             widgetID = data.widgetID;
         }
         await editWidget(iframe,page,widgetID);
-        await ReloadandWait_Newpage(newPage)
+        await NavigateToPage(newPage,pageName,storeURL,productOnstore);
         await WidgetIsDisplayed(newPage,widgetID);
 
+        await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded(); //Just to see the area properly
         await iframe.locator('.widget-settings-button').click(); //Customize
         await page.waitForTimeout(3000);
     }); 

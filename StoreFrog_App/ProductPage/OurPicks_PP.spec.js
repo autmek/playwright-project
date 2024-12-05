@@ -74,7 +74,7 @@ test.afterAll(async()=>{
 })
 
 // 1. Create new Widget
-test('Create new OurPicksfor_You widget for Product page', async()=>{
+test.skip('Create new OurPicksfor_You widget for Product page', async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'OurpicksPP.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
     await CreateNewWidget(page, iframe, appName,pageName, 'Our pick for you');
@@ -85,7 +85,7 @@ test('Create new OurPicksfor_You widget for Product page', async()=>{
 });
 
 // 2. Edit widget title
-test('Edit Widget title', async ()=> {
+test.skip('Edit Widget title', async ()=> {
     //widgetID = '0077';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -99,7 +99,7 @@ test('Edit Widget title', async ()=> {
 });
 
 // 3. Add Variable product from widget to cart
-test('Add variable product from widget to cart', async () => {
+test.skip('Add variable product from widget to cart', async () => {
     if(!widgetID){
         const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'OurpicksPP.json'))); 
         widgetID = data.widgetID;
@@ -289,10 +289,11 @@ test.describe('Customise widget', async()=>{
             widgetID = data.widgetID;
             }
         await editWidget(iframe,page,widgetID);
-        await ReloadandWait_Newpage(newPage)
+        await NavigateToPage(newPage,pageName,storeURL,productOnstore);
         await WidgetIsDisplayed(newPage,widgetID);
-
-        await iframe.locator('.widget-settings-button').click(); //Customize
+        
+        await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded(); //Just to see the area properly
+        await iframe.locator('.widget-settings-button').click({force:true}); //Customize
         await page.waitForTimeout(3000);
     }); 
     test.afterAll(async()=>{

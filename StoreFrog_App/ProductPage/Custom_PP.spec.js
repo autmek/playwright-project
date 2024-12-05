@@ -347,6 +347,7 @@ test.describe('Customise widget', async()=>{
         await ReloadandWait_Newpage(newPage)
         await WidgetIsDisplayed(newPage,widgetID);
 
+        await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded(); //Just to see the area properly
         await iframe.locator('.widget-settings-button').click(); //Customize
         await page.waitForTimeout(3000);
     }); 

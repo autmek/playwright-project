@@ -81,7 +81,10 @@ async function NavigateToStore(page){
 async function NavigateToPage(newPage,pageName,storeURL,productName,CollectionPage){
     switch (pageName){
         case 'Product page':
-            await newPage.locator('.header__search').click();
+            await newPage.locator('summary.header__icon--search').scrollIntoViewIfNeeded();
+            await newPage.waitForTimeout(1000);
+            await newPage.locator('summary.header__icon--search').click();
+            await newPage.waitForTimeout(500);
             await newPage.locator('.search__input').fill(productName);
             await newPage.waitForTimeout(500);
             const productResult = await newPage.locator('.predictive-search__result-group');
@@ -160,6 +163,8 @@ async function ApplyDisplayFilter(iframe, type, action, value){
     await iframe.locator(`.sf-filter-elements:has-text("${type}")`).click(); //filter type
 
     await iframe.getByText(action).click(); //Include/ Exclude
+    await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded(); //Just to see the area properly
+    await iframe.locator(`input[role="combobox"]`).click({force:true});
     await iframe.locator(`input[role="combobox"]`).fill(value);
     await iframe.getByRole('option', { name: value, exact: true }).click();
 }
@@ -174,7 +179,8 @@ async function ViewDate(iframe, ActiveWindow){
 	    const tomorrow_monthName = tomorrow.toLocaleDateString('en-US', { month: 'long' });
         const today_monthName = today.toLocaleDateString('en-US', { month: 'long' });
         const day = tomorrow.getDate();
-        await iframe.locator('.sf-datepicker-mT .Polaris-Box').first().click();
+        await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded(); //Just to see the area properly
+        await iframe.locator('.sf-datepicker-mT .Polaris-Box').first().click({force:true});
         if(tomorrow_monthName!==today_monthName){
             await iframe.locator('.Polaris-DatePicker__Header .Polaris-Button__Icon').nth(1).click();
         }
@@ -249,7 +255,7 @@ async function Verify_variableToCart(newPage,widgetID,storeURL){
         }
     }
     if (productIndex === -1) {
-        console.log('No variable products in the recommendation.');
+        console.log('❗ No variable products in the recommendation.');
         return;
       }
     const targetProductContainer = productContainers.nth(productIndex);
@@ -266,6 +272,7 @@ async function Verify_variableToCart(newPage,widgetID,storeURL){
     const cartItem = await newPage.locator(`.cart-item__details:has-text("${variableProduct}")`);
     const cartOption = await cartItem.locator('dl .product-option dd').innerText();
     expect(cartOption).toContain(selectedOption);
+    await deleteFromCart(newPage);
     await newPage.goBack();
 }
 async function recomProductsOnWidget(newPage,widgetID,recommendation){
