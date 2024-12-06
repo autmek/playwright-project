@@ -39,6 +39,9 @@ const Collection = 'Automated Collection';
 const Tag = 'Wood';
 const price = '80';
 
+// Recommendation for ShopPage
+const Type = 'Indoor';
+const Vendor = 'Company 123'; 
 //CustomWidgetRecommendation
 const priceAmount = '10';
 const pricePercentage = '50';
@@ -86,4 +89,5 @@ module.exports = {
     edit_discountText,triggerProduct,recom_Products,discount_flat,discount_cent,
     triggerCollection,productCoupon,orderCoupon,shippingCoupon,newSubtitle,
     triggerVariant,secondaryVariant,higherPricedVariant,
+    Type,Vendor,
 }

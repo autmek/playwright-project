@@ -8,6 +8,7 @@ const{
 } = require('./CommonFunctions');
 
 async function ApplySortbyFilter(iframe,type,order){
+    await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded(); //Just to see the area properly
     const sort_Card = await iframe.locator('.sf-filter-button-container').nth(2);
     await sort_Card.locator('.sf-filter').click();
     await iframe.locator(`.sf-filter-elements:has-text("${type}")`).click(); //filter type
@@ -60,6 +61,7 @@ async function ApplyDisplayFilter_CustomWidget(iframe, type, action, value){
     await display_Card.getByText('Add filter').click(); //Add filter
     await iframe.locator(`.sf-filter-elements:has-text("${type}")`).click(); //filter type
 
+    await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded(); //Just to see the area properly
     await iframe.getByText(action).click(); //Include/ Exclude
     await iframe.locator(`input[role="combobox"]`).fill(value);
     await iframe.getByRole('option', { name: value, exact: true }).click();
@@ -78,6 +80,7 @@ async function ViewDate_CustomWidget(iframe, ActiveWindow){
 	    const tomorrow_monthName = tomorrow.toLocaleDateString('en-US', { month: 'long' });
         const today_monthName = today.toLocaleDateString('en-US', { month: 'long' });
         const day = tomorrow.getDate();
+        await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded(); //Just to see the area properly
         await iframe.locator('.sf-datepicker-mT .Polaris-Box').first().click();
         if(tomorrow_monthName!==today_monthName){
             await iframe.locator('.Polaris-DatePicker__Header .Polaris-Button__Icon').nth(1).click();

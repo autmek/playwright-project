@@ -74,7 +74,7 @@ test.afterAll(async()=>{
 })
 
 // 1. Create new Widget
-test.skip('Create new OurPicksfor_You widget for Product page', async()=>{
+test.skip('Create new OurPicksfor_You widget for Product page', {tag:'@CreateNewWidget'},async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'OurpicksPP.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
     await CreateNewWidget(page, iframe, appName,pageName, 'Our pick for you');
@@ -85,7 +85,7 @@ test.skip('Create new OurPicksfor_You widget for Product page', async()=>{
 });
 
 // 2. Edit widget title
-test.skip('Edit Widget title', async ()=> {
+test.skip('Edit Widget title',{tag:'@EditTitle'}, async ()=> {
     //widgetID = '0077';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -99,7 +99,7 @@ test.skip('Edit Widget title', async ()=> {
 });
 
 // 3. Add Variable product from widget to cart
-test.skip('Add variable product from widget to cart', async () => {
+test.skip('Add variable product from widget to cart', {tag:'@addVariable'}, async () => {
     if(!widgetID){
         const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'OurpicksPP.json'))); 
         widgetID = data.widgetID;
@@ -118,7 +118,7 @@ test.skip('Add variable product from widget to cart', async () => {
     vi). Price(GreaterThan/LessThan)
     vii). View Date(Current/Future)
 */
-test.describe('Display Rules', async()=>{
+test.describe('Display Rules',{tag:'@DisplayRules'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -278,7 +278,7 @@ test.describe('Display Rules', async()=>{
     xii). Button Color
     xiii). Responsiveness
 */
-test.describe('Customise widget', async()=>{
+test.describe('Customise widget',{tag:'@Customization'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);

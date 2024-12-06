@@ -9,6 +9,7 @@ const {
 const {
     Customise_SaveChanges,
 } = require('./visualPreference');
+const { productOnstore } = require('./constants');
 
 async function deleteAllotherRecommendation(iframe,page){
     let deleteCount;    
@@ -223,21 +224,26 @@ async function discountApplied(newWidg,discountValue,Dtype){
     }
     return totalPrice;
 }
-async function discountAddedtoCart(newPage,newWidg,storeURL,totalPrice){
+async function discountAddedtoCart(newPage,newWidg,storeURL,totalPrice,pageName){
     await newWidg.locator('.sf-fbt-add-to-cart-btn').click();
     await newPage.waitForTimeout(3000);
     const urlnow = await newPage.url();
     if(! urlnow.includes('cart')){
         await NavigateToPage(newPage,'Cart page',storeURL);
     }
+    if(pageName==='Cart page'){
+        const cartItems = await newPage.locator('.cart-items .cart-item');
+        const deleteProduct = await cartItems.filter({
+            has: newPage.locator('.cart-item__name', { hasText: productOnstore })
+        });
+    await deleteProduct.locator('.quantity__button').first().click();
+    await newPage.waitForTimeout(3000);
+    }
     const tot_Price = await newPage.locator('.totals__total-value').innerText();
     const cartTotal = parseFloat(tot_Price.replace(/[^\d.]/g, ''));
     expect(cartTotal).toBe(totalPrice);
     await deleteFromCart(newPage);
     await newPage.goBack();
-
-
-
 }
 
 async function totalPriceDisplay(iframe,page,newPage,widgetID,endis_able){

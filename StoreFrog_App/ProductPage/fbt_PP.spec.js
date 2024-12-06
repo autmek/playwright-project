@@ -82,7 +82,7 @@ test.afterAll(async()=>{
 })
 
 // 1. Create new Widget
-test('Create new FBT widget for Product page', async()=>{
+test('Create new FBT widget for Product page',{tag:'@CreateNewWidget'}, async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'fbtPP.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
     await CreateNewWidget(page,iframe,appName,pageName, 'Frequently bought together');
@@ -92,7 +92,7 @@ test('Create new FBT widget for Product page', async()=>{
     await WidgetIsDisplayed(newPage, widgetID);
 });
 // 2. Edit widget title
-test('Edit widget title', async()=>{
+test('Edit widget title',{tag:'@EditTitle'}, async()=>{
     //widgetID = '0081';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -111,8 +111,7 @@ test('Edit widget title', async()=>{
     iii). Random recommendation (same collection/same type/ same category)
     iv). Global recommendation
 */
-
-test.describe('Products to recommend', ()=>{
+test.describe('Products to recommend',{tag:'@RecommendProducts'}, ()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -168,7 +167,7 @@ test.describe('Products to recommend', ()=>{
     });
 });
 // 4. Add Variable product from widget to cart
-test('Add variable product from widget to cart', async () => {
+test('Add variable product from widget to cart', {tag:'@addVariable'}, async () => {
     if(!widgetID){
         const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fbtPP.json'))); 
         widgetID = data.widgetID;
@@ -187,8 +186,7 @@ test('Add variable product from widget to cart', async () => {
     vi). Price(GreaterThan/LessThan)
     vii). View Date(Current/Future)
 */
-test.describe('Display Rules', async()=>{
-
+test.describe('Display Rules',{tag:'@DisplayRules'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -338,7 +336,7 @@ test.describe('Display Rules', async()=>{
     iii). Flat discount
     iv). Discount apllication to cart
 */
-test.describe('FBT - Discounts', async()=>{
+test.describe('FBT - Discounts', {tag:'@Discounts'},async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -365,7 +363,7 @@ test.describe('FBT - Discounts', async()=>{
     });
 
     //Make sure the discount text contains "{discount}" to avoid conflict in the code
-    test.only('Percentage Discount', async()=>{
+    test('Percentage Discount', async()=>{
         const Dtype = await ApplyDiscount(iframe,'percentage',discount_cent);
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage);
@@ -374,7 +372,7 @@ test.describe('FBT - Discounts', async()=>{
         await discountAddedtoCart(newPage,newWidg,storeURL,totalPrice);
     });
 
-    test.only('Flat Discount',async()=>{
+    test('Flat Discount',async()=>{
         const Dtype = await ApplyDiscount(iframe,'flat',discount_flat);
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage);
@@ -384,8 +382,23 @@ test.describe('FBT - Discounts', async()=>{
     }); 
 });
 
-// Customize
-test.describe('Customise widget', async()=>{
+/*
+7. Customization
+    i). Total Number of products on widget
+    ii). Display style on desktop (Grid/Slider/List)
+    iii). Title alignment(Left/Centre/Right)
+    iv). Title font color
+    v). Product price display
+    vi). Product title alignment(Left/Centre/Right)
+    vii). Product title font color
+    viii). Cart button display
+    ix). Button(AddtoCart & Select Option) texts
+    x). Button Action (Redirect to cart/ Stay on page/ Redirect to checkout)
+    xi). Button background color
+    xii). Button Color
+    xiii). Responsiveness
+*/
+test.describe('Customise widget', {tag:'@Customization'},async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);

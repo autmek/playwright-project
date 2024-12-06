@@ -65,27 +65,19 @@ test.beforeAll(async ({browser}) => {
 test.afterAll(async()=>{
     await context.close();
 })
-
-test('Create new OurPicksfor_You widget for Shop page', async()=>{
+// 1. Create new Widget
+test('Create new OurPicksfor_You widget for Shop page',{tag:'@CreateNewWidget'}, async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'OurpicksShop.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
     await CreateNewWidget(page, iframe, appName,pageName, 'Our pick for you');
     widgetID = await FindWidgetID(iframe);
     fs.writeFileSync(path.resolve(__dirname, 'OurpicksShop.json'), JSON.stringify({ widgetID }));
-    console.log('Widget ID is: ', widgetID);
     await ReloadandWait_Newpage(newPage)
     await WidgetIsDisplayed(newPage, widgetID);
 });
-test('Add variable product from widget to cart', async () => {
-    if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'OurpicksShop.json'))); 
-        widgetID = data.widgetID;
-    }
-    await Verify_variableToCart(newPage,widgetID,storeURL);
-});
 
-// 2. Verify editing widget title
-test('Edit Widget title', async ()=> {
+// 2. Edit widget title
+test('Edit Widget title',{tag:'@EditTitle'}, async ()=> {
     //widgetID = '0106';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -97,9 +89,21 @@ test('Edit Widget title', async ()=> {
     await editWidget(iframe,page,widgetID);
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);        
 });
+// 3. Add Variable product from widget to cart
+test('Add variable product from widget to cart',{tag:'@addVariable'}, async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'OurpicksShop.json'))); 
+        widgetID = data.widgetID;
+    }
+    await Verify_variableToCart(newPage,widgetID,storeURL);
+});
 
-// DisplayRules
-test.describe('Display Rules', async()=>{
+/*
+4. DisplayRules
+    i). User(Guest/Customer)
+    ii). View Date(Current/Future)
+*/
+test.describe('Display Rules', {tag:'@DisplayRules'},async()=>{
 
     test.beforeAll(async()=>{
         //widgetID = '0001';
@@ -149,8 +153,23 @@ test.describe('Display Rules', async()=>{
         
 });
 
-// Customize
-test.describe('Customise widget', async()=>{
+/*
+5. Customization
+    i). Total Number of products on widget
+    ii). Display style on desktop (Grid/Slider/List)
+    iii). Title alignment(Left/Centre/Right)
+    iv). Title font color
+    v). Product price display
+    vi). Product title alignment(Left/Centre/Right)
+    vii). Product title font color
+    viii). Cart button display
+    ix). Button(AddtoCart & Select Option) texts
+    x). Button Action (Redirect to cart/ Stay on page/ Redirect to checkout)
+    xi). Button background color
+    xii). Button Color
+    xiii). Responsiveness
+*/
+test.describe('Customise widget', {tag:'@Customization'},async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -163,6 +182,7 @@ test.describe('Customise widget', async()=>{
         await editWidget(iframe,page,widgetID);
         await ReloadandWait_Newpage(newPage)
         await WidgetIsDisplayed(newPage,widgetID);
+        await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded();
         await iframe.locator('.widget-settings-button').click(); //Customize
         await page.waitForTimeout(3000);
     }); 

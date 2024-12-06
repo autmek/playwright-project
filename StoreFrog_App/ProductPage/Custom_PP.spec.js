@@ -73,7 +73,7 @@ test.afterAll(async()=>{
 })
 
 // 1. Create new Widget
-test('Create new Custom widget (Onsale products) for Product page', async()=>{
+test('Create new Custom widget (Onsale products) for Product page',{tag:'@CreateNewWidget'}, async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'CustomPP.json'), JSON.stringify({}));
     await CreateNewWidget(page,iframe,appName,pageName,newtitle);
     widgetID = await FindWidgetID(iframe);
@@ -83,7 +83,7 @@ test('Create new Custom widget (Onsale products) for Product page', async()=>{
 });
 
 // 2. Add Variable product from widget to cart
-test('Add variable product from widget to cart', async () => {
+test('Add variable product from widget to cart',{tag:'@addVariable'},  async () => {
     if(!widgetID){
         const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CustomPP.json'))); 
         widgetID = data.widgetID;
@@ -101,7 +101,7 @@ test('Add variable product from widget to cart', async () => {
     v). Onsale 
     vi). Product tag
 */
-test.describe('Products to Recommend',()=>{
+test.describe('Products to Recommend',{tag:'@RecommendProducts'},()=>{
     test.beforeAll(async()=>{
         //widgetID='0078';
         await NavigatetoApp(page,appName);
@@ -177,7 +177,7 @@ test.describe('Products to Recommend',()=>{
     vii). View Date(Current/Future)
 */
 
-test.describe('Display Rules', async()=>{
+test.describe('Display Rules',{tag:'@DisplayRules'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -333,7 +333,7 @@ test.describe('Display Rules', async()=>{
     xii). Button Color
     xiii). Responsiveness
 */
-test.describe('Customise widget', async()=>{
+test.describe('Customise widget',{tag:'@Customization'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -447,7 +447,7 @@ test.describe('Customise widget', async()=>{
     iii). Price ()High to low/ Low to high)
     iv). Random
 */
-test.describe('Sort Products by',async()=>{
+test.describe('Sort Products by',{tag:'@Sortby'},async()=>{
     test.beforeAll(async()=>{
         //widgetID='0078';
         await NavigatetoApp(page,appName);

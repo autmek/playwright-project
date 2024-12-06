@@ -1,8 +1,8 @@
 const { defineConfig } = require('@playwright/test');
 module.exports = defineConfig({
   testDir: './StoreFrog_App',
-  timeout: 400000,
-  expect: { timeout: 30 * 1000 },
+  timeout: 5 * 60 * 1000,
+  expect: { timeout: 15 * 1000 },
 
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

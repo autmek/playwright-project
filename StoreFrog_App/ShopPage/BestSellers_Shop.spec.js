@@ -18,6 +18,7 @@ const {
     UserRole, 
     editverify_Title,
     Verify_variableToCart,
+    NavigateToPage,
 
 } = require('../testUtils/CommonFunctions');
 // Functions for customisation
@@ -39,6 +40,7 @@ const {
 const{
     userName, passWord, adminURL, adminTitle, appName,
     total_productsOn, products_perRow, edit_cartButton, edit_chooseButton,
+    Collection,Type,Vendor,Category,
 }= require('../testUtils/constants');
 
 let context, iframe, widgetID, newPage, page, storeURL;
@@ -60,27 +62,19 @@ test.beforeAll(async ({browser}) => {
 test.afterAll(async()=>{
     await context.close();
 })
-// CreateNewWidget
-test('Create new BestSeller widget for Shop page', async()=>{
+// 1. Create new Widget
+test('Create new BestSeller widget for Shop page', {tag:'@CreateNewWidget'},async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'BestsellerShop.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
     await CreateNewWidget(page, iframe, appName,pageName, 'Best sellers');
     widgetID = await FindWidgetID(iframe);
     fs.writeFileSync(path.resolve(__dirname, 'BestsellerShop.json'), JSON.stringify({ widgetID }));
-    console.log('Widget ID is: ', widgetID);
     await ReloadandWait_Newpage(newPage)
     await WidgetIsDisplayed(newPage, widgetID);
 });
-test('Add variable product from widget to cart', async () => {
-    if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'BestsellerShop.json'))); 
-        widgetID = data.widgetID;
-    }
-    await Verify_variableToCart(newPage,widgetID,storeURL);
-});
 
-// EditWidgetTitle
-test('Edit Widget title', async ()=> {
+// 2. Edit widget title
+test('Edit Widget title', {tag:'@EditTitle'},async ()=> {
     //widgetID = '0106';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -93,8 +87,15 @@ test('Edit Widget title', async ()=> {
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);    
 });
 
-// Products to recommend
-test.describe('Products to Recommend',()=>{
+/*
+3. Products to recommend 
+    i). Specific Collection 
+    ii). Specific Type 
+    iii). Specific Vendor
+    iv). Specific Category
+    v). Storewide best-selling products
+*/
+test.describe('Products to Recommend',{tag:'@RecommendProducts'},()=>{
     const filterValues = [
         'collections',
         'productType',
@@ -102,14 +103,19 @@ test.describe('Products to Recommend',()=>{
         'category',
         'from_store',
     ];
-
+    const filterValueOptions = {
+        collections: Collection,
+        productType: Type,
+        vendor: Vendor,
+        category: Category,
+    };
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(3000);
         if(!widgetID){
-            const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'Bestseller404.json'))); 
+            const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'BestsellerShop.json'))); 
             widgetID = data.widgetID;
         }
         await editWidget(iframe,page,widgetID);
@@ -119,16 +125,40 @@ test.describe('Products to Recommend',()=>{
     for (const values of filterValues) {
         test(`Products to recommend - ${values}`, async ()=> {
             const filter_radioButton = await iframe.locator('.Polaris-RadioButton');
+            await filter_radioButton.locator(`input[value="from_store"]`).click({force:true});
             await filter_radioButton.locator(`input[value="${values}"]`).click({force:true});
+            if(values!== 'from_store'){
+                const valueOptions = filterValueOptions[values];
+                await iframe.locator('.sf-button-below-choice').click();
+                const modal = await iframe.locator('.Polaris-Modal-Dialog__Modal');
+                await modal.locator('.Polaris-TextField__Input').fill(valueOptions);
+                await page.waitForTimeout(500);
+                await modal.locator(`.Polaris-Listbox-Option`, {hasText: valueOptions}).click();
+                await page.waitForTimeout(500);
+                await modal.getByRole('button',{name:"Select"}).click();
+            }
             await Savewidget(iframe,page);
             await ReloadandWait_Newpage(newPage);
             await WidgetIsDisplayed(newPage,widgetID);
         });
     }
 });
+// 4. Add Variable product from widget to cart
+test('Add variable product from widget to cart',{tag:'@addVariable'}, async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'BestsellerShop.json'))); 
+        widgetID = data.widgetID;
+    }
+    await NavigateToPage(newPage,pageName,storeURL);
+    await Verify_variableToCart(newPage,widgetID,storeURL);
+});
 
-// DisplayRules
-test.describe('Display Rules', async()=>{
+/*
+5. DisplayRules
+    i). User(Guest/Customer)
+    ii). View Date(Current/Future)
+*/
+test.describe('Display Rules',{tag:'@DisplayRules'}, async()=>{
 
     test.beforeAll(async()=>{
         //widgetID = '0001';
@@ -136,7 +166,7 @@ test.describe('Display Rules', async()=>{
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(3000);
         if(!widgetID){
-            const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'Bestseller404.json'))); 
+            const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'BestsellerShop.json'))); 
             widgetID = data.widgetID;
         }
         await editWidget(iframe,page,widgetID);
@@ -179,21 +209,36 @@ test.describe('Display Rules', async()=>{
         
 });
 
-// Customize
-test.describe('Customise widget', async()=>{
+/*
+6. Customization
+    i). Total Number of products on widget
+    ii). Display style on desktop (Grid/Slider/List)
+    iii). Title alignment(Left/Centre/Right)
+    iv). Title font color
+    v). Product price display
+    vi). Product title alignment(Left/Centre/Right)
+    vii). Product title font color
+    viii). Cart button display
+    ix). Button(AddtoCart & Select Option) texts
+    x). Button Action (Redirect to cart/ Stay on page/ Redirect to checkout)
+    xi). Button background color
+    xii). Button Color
+    xiii). Responsiveness
+*/
+test.describe('Customise widget',{tag:'@Customization'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(3000);
         if(!widgetID){
-            const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'Bestseller404.json'))); 
+            const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'BestsellerShop.json'))); 
             widgetID = data.widgetID;
         }
         await editWidget(iframe,page,widgetID);
         await ReloadandWait_Newpage(newPage)
         await WidgetIsDisplayed(newPage,widgetID);
-
+        await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded();
         await iframe.locator('.widget-settings-button').click(); //Customize
         await page.waitForTimeout(3000);
     }); 

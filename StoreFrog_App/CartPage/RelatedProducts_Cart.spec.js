@@ -70,8 +70,8 @@ test.afterAll(async()=>{
     await context.close();
 })
 
-// CreateNewWidget
-test('Create new Related product widget for Cart page', async()=>{
+// 1. Create new Widget
+test('Create new Related product widget for Cart page',{tag:'@CreateNewWidget'}, async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'RelatedCart.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
     await CreateNewWidget(page, iframe, appName,pageName, 'Related products');
@@ -80,16 +80,9 @@ test('Create new Related product widget for Cart page', async()=>{
     await ReloadandWait_Newpage(newPage)
     await WidgetIsDisplayed(newPage, widgetID);
 });
-test('Add variable product from widget to cart', async () => {
-    if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'RelatedCart.json'))); 
-        widgetID = data.widgetID;
-    }
-    await Verify_variableToCart(newPage,widgetID,storeURL);
-});
 
-// EditWidgetTitle
-test('Edit Widget title', async ()=> {
+// 2. Edit widget title
+test('Edit Widget title',{tag:'@EditTitle'}, async ()=> {
     //widgetID = '0106';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -102,8 +95,16 @@ test('Edit Widget title', async ()=> {
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);                 
 });
 
-// Products to recommend
-test.describe('Products to Recommend',()=>{
+/*
+3. Products to recommend 
+    i). Automatic recommendation
+    ii). Collection of currently viewing product
+    iii). Type of currently viewing product
+    iv). Vendor of currently viewing product
+    v). Category of currently viewing product
+    vi). Tag of currently viewing product
+*/
+test.describe('Products to Recommend',{tag:'@RecommendProducts'},()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -114,12 +115,6 @@ test.describe('Products to Recommend',()=>{
             widgetID = data.widgetID;
             }
         await editWidget(iframe,page,widgetID);
-        await ReloadandWait_Newpage(newPage)
-        await WidgetIsDisplayed(newPage,widgetID);
-    });
-    test('Products to recommends - Automatic', async ()=> {
-        await iframe.getByText('Automatic').click();
-        await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage)
         await WidgetIsDisplayed(newPage,widgetID);
     });
@@ -144,12 +139,39 @@ test.describe('Products to Recommend',()=>{
             await Savewidget(iframe,page);
             await ReloadandWait_Newpage(newPage);
             await WidgetIsDisplayed(newPage,widgetID);
-        });
+        });   
     }
+    test('Products to recommends - Automatic', async ()=> {
+        await iframe.getByText('Automatic').click();
+        await Savewidget(iframe,page);
+        await ReloadandWait_Newpage(newPage)
+        await WidgetIsDisplayed(newPage,widgetID);
+    }); 
+});
+// 4. Add Variable product from widget to cart
+test('Add variable product from widget to cart',{tag:'@addVariable'}, async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'RelatedCart.json'))); 
+        widgetID = data.widgetID;
+    }
+    await ReloadandWait_Newpage(newPage)
+    await Verify_variableToCart(newPage,widgetID,storeURL);
+    await NavigateToPage(newPage,'Product page',storeURL,productOnstore);
+    await addToCart(newPage);
+    await NavigateToPage(newPage,pageName,storeURL);
 });
 
-// DisplayRules
-test.describe('Display Rules', async()=>{
+/*
+5. DisplayRules
+    i). Category(Include/Exclude)
+    ii). Product(Include/Exclude)
+    iii). Collection(Include/Exclude)
+    iv). Tag(Include/Exclude)
+    v). User(Guest/Customer)
+    vi). Price(GreaterThan/LessThan)
+    vii). View Date(Current/Future)
+*/
+test.describe('Display Rules',{tag:'@DisplayRules'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -326,20 +348,35 @@ test.describe('Display Rules', async()=>{
     test('Display Rules - Price LessThan', async()=>{
         await Price(iframe, 'lessThan',price);
         await Savewidget(iframe,page);
-        await NavigateToPage(newPage,'Product page',storeURL,Main_product);
-        await addToCart(newPage);
-        await NavigateToPage(newPage,pageName,storeURL);
-        await WidgetNotDisplayed(newPage,widgetID);
         await NavigateToPage(newPage,'Product page',storeURL,Secondary_product);
         await addToCart(newPage);
         await NavigateToPage(newPage,pageName,storeURL);
         await WidgetIsDisplayed(newPage,widgetID);
+        await NavigateToPage(newPage,'Product page',storeURL,Main_product);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,pageName,storeURL);
+        await WidgetNotDisplayed(newPage,widgetID);
     });
     
 });
 
-// Customize
-test.describe('Customise widget', async()=>{
+/*
+6. Customization
+    i). Total Number of products on widget
+    ii). Display style on desktop (Grid/Slider/List)
+    iii). Title alignment(Left/Centre/Right)
+    iv). Title font color
+    v). Product price display
+    vi). Product title alignment(Left/Centre/Right)
+    vii). Product title font color
+    viii). Cart button display
+    ix). Button(AddtoCart & Select Option) texts
+    x). Button Action (Redirect to cart/ Stay on page/ Redirect to checkout)
+    xi). Button background color
+    xii). Button Color
+    xiii). Responsiveness
+*/
+test.describe('Customise widget',{tag:'@Customization'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -352,7 +389,7 @@ test.describe('Customise widget', async()=>{
         await editWidget(iframe,page,widgetID);
         await ReloadandWait_Newpage(newPage)
         await WidgetIsDisplayed(newPage,widgetID);
-
+        await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded();
         await iframe.locator('.widget-settings-button').click(); //Customize
         await page.waitForTimeout(3000);
     }); 

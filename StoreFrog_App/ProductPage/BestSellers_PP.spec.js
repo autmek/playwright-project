@@ -66,7 +66,7 @@ test.afterAll(async()=>{
 })
 
 // 1. Create new Widget
-test('Create new BestSeller widget for Product page', async()=>{
+test('Create new BestSeller widget for Product page',{tag:'@CreateNewWidget'}, async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'BestsellerPP.json'), JSON.stringify({}));
     await page.waitForLoadState('load');
     await CreateNewWidget(page, iframe, appName,pageName, 'Best sellers');
@@ -76,7 +76,7 @@ test('Create new BestSeller widget for Product page', async()=>{
     await WidgetIsDisplayed(newPage, widgetID);
 });
 // 2. Edit widget title
-test('Edit Widget title', async ()=> {
+test('Edit Widget title',{tag:'@EditTitle'}, async ()=> {
     //widgetID = '0001';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -97,7 +97,7 @@ test('Edit Widget title', async ()=> {
     iv). Category of currently viewing product
     v). Storewide best-selling products
 */
-test.describe('Products to Recommend',()=>{
+test.describe('Products to Recommend',{tag:'@RecommendProducts'},()=>{
     const filterValues = [
         'collections',
         'productType',
@@ -131,7 +131,7 @@ test.describe('Products to Recommend',()=>{
 });
 
 // 4. Add Variable product from widget to cart
-test('Add variable product from widget to cart', async () => {
+test('Add variable product from widget to cart',{tag:'@addVariable'}, async () => {
     if(!widgetID){
         const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'BestsellerPP.json'))); 
         widgetID = data.widgetID;
@@ -150,7 +150,7 @@ test('Add variable product from widget to cart', async () => {
     vi). Price(GreaterThan/LessThan)
     vii). View Date(Current/Future)
 */
-test.describe('Display Rules', async()=>{
+test.describe('Display Rules', {tag:'@DisplayRules'},async()=>{
 
     test.beforeAll(async()=>{
         //widgetID = '0001';
@@ -310,7 +310,7 @@ test.describe('Display Rules', async()=>{
     xii). Button Color
     xiii). Responsiveness
 */
-test.describe('Customise widget', async()=>{
+test.describe('Customise widget',{tag:'@Customization'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -329,7 +329,6 @@ test.describe('Customise widget', async()=>{
         await page.waitForTimeout(3000);
     }); 
     test.afterAll(async()=>{
-        //Closing customize window
         await iframe.locator('.Polaris-FullscreenBar__BackAction').click();
     });
     test('The total number of products to display', async()=>{    
