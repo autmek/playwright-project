@@ -64,15 +64,16 @@ const recom_Products = [
     'Antique Drawers',
 ];
 // Discounts
-const discount_flat = '50';
-const discount_cent = '100';
+const discount_flat = '10';
+const discount_cent = '50';
 
 //CrossSell&Upsell
 const triggerCollection = CollectionPage;
 const newSubtitle = 'Updated discount';
-const productCoupon = 'J09BKV4340CX';
-const orderCoupon = 'W8P58BN9GTH1';
-const shippingCoupon = 'ZQTKXY9W6RRS';
+const productCoupon = 'productCombo';
+const couponComboProduct = 'Brown Throw Pillows';
+const orderCoupon = 'orderCombo';
+const shippingCoupon = 'shippingCombo';
 
 //UpSell
 const triggerVariant = 'Anchor Bracelet';
@@ -89,5 +90,5 @@ module.exports = {
     edit_discountText,triggerProduct,recom_Products,discount_flat,discount_cent,
     triggerCollection,productCoupon,orderCoupon,shippingCoupon,newSubtitle,
     triggerVariant,secondaryVariant,higherPricedVariant,
-    Type,Vendor,
+    Type,Vendor,couponComboProduct,
 }

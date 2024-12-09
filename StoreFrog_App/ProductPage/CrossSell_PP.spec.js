@@ -28,6 +28,7 @@ const {
     discountColor,
     editverify_Title,
     Verify_variableToCart,
+    discountAddedtoCart,
 } = require('../testUtils/CrossSell');
 const {
     titleAlignment,
@@ -39,7 +40,7 @@ const {
 } = require('../testUtils/visualPreference');
 const {
     userName, passWord, adminURL, adminTitle, appName,
-    triggerCollection,productCoupon,orderCoupon,shippingCoupon,
+    triggerCollection,productCoupon,orderCoupon,shippingCoupon,couponComboProduct,
     productOnstore,Main_product,Secondary_product,
     edit_discountText,triggerProduct,recom_Products,discount_cent,newSubtitle,
 } = require('../testUtils/constants');
@@ -88,13 +89,13 @@ test('Edit title',{tag:'@EditTitle'}, async()=>{
 // 3. Add Variable product from widget to cart
 test('Add variable product from widget to cart', {tag:'@addVariable'},async () => {
     if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'RecentView404.json'))); 
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CrossellPP.json'))); 
         widgetID = data.widgetID;
     }
     await NavigateToPage(newPage,pageName,storeURL,productOnstore);
     await Verify_variableToCart(newPage,widgetID,storeURL);
 });
-
+// 4. Products to recommend
 test.describe('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
@@ -141,7 +142,7 @@ test.describe('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
     });
     
 })
-
+// 5. Discounts
 test.describe('Discounts',{tag:'@Discounts'},async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0084';
@@ -157,23 +158,25 @@ test.describe('Discounts',{tag:'@Discounts'},async()=>{
         await WidgetIsDisplayed(newPage,widgetID);
     })
     test('Disable Discount',async()=>{
-        await Discount(iframe,'disable');
+        await Discount(iframe,page,'disable');
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage)
         await verifyDiscountonStore(newPage,widgetID,'disable');
     })
     test('Enable discount',async()=>{
-        await Discount(iframe,'enable',discount_cent);
+        await Discount(iframe,page,'enable',discount_cent);
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage)
-        await verifyDiscountonStore(newPage,widgetID,'enable');
+        const totalPrice = await verifyDiscountonStore(newPage,widgetID,'enable',discount_cent);
+        await discountAddedtoCart(newPage,pageName,storeURL,totalPrice);
     })
     test('Edit DiscountText', async()=>{
         await editverify_subtitle(page,newPage,iframe,newSubtitle,widgetID);
     })
 });
-/*
-test.describe('Discount Combination', async()=>{
+
+// 6. Discount Combination
+test.describe('Discount Combination',{tag:'@Discounts'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0082';
         await NavigatetoApp(page,appName);
@@ -184,12 +187,10 @@ test.describe('Discount Combination', async()=>{
             widgetID = data.widgetID;
         }    
         await editWidget(iframe,page,widgetID);
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
-        await Discount(iframe,'enable',discount_cent);
+        await Discount(iframe,page,'enable',discount_cent);
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage)
-        await verifyDiscountonStore(newPage,widgetID,'enable');    
+        await verifyDiscountonStore(newPage,widgetID,'enable',discount_cent);    
     })
     test('Other product discounts',async()=>{
         await discountCombo(iframe,'product');
@@ -198,7 +199,7 @@ test.describe('Discount Combination', async()=>{
 
     })
 });
-*/
+// 7. Customization
 test.describe('Customize widget',async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';

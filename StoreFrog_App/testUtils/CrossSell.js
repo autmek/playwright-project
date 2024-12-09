@@ -6,6 +6,7 @@ const {
     ReloadandWait_Newpage,
     addToCart,
     NavigateToPage,
+    deleteFromCart,
 } = require('./CommonFunctions');
 const{
     Customise_SaveChanges,
@@ -81,25 +82,55 @@ async function addSpecific(iframe,page,specific,trigger,recom_Products){
 }
 async function Discount(iframe,page,en_dis,discount){
     const discountCheckbox = await iframe.locator('.Polaris-Checkbox__Input').first();
-    const discountChecked = await discountCheckbox.isChecked();
-    if ((en_dis === 'enable' && !discountChecked) ){
-        await discountCheckbox.click();
+    const isDiscountChecked = await discountCheckbox.isChecked();
+    if ((en_dis === 'enable' && !isDiscountChecked) ){
+        await discountCheckbox.click({force:true});
         await iframe.locator('.Polaris-TextField__Input').nth(2).fill(discount);
         await page.waitForTimeout(1000);
-    }else if((en_dis === 'disable' && discountChecked)) 
+    }else if((en_dis === 'disable' && isDiscountChecked)) 
     {
-        await discountCheckbox.click();
+        await discountCheckbox.click({force:true});
     }
 }
 
-async function verifyDiscountonStore(newPage,widgetID,en_dis){
+async function verifyDiscountonStore(newPage,widgetID,en_dis,discountValue){
     const newWidg = await WidgetIsDisplayed(newPage,widgetID);
     const discount_onStore = await newWidg.locator('.sf-discount-text');
     if(en_dis==='disable'){
         await expect(discount_onStore).toBeHidden();
     }else{
         await expect(discount_onStore).toBeVisible();
+        await newWidg.locator('.sf-product-checkbox').first().click();
+        const tot_Price = await newWidg.locator('.sf-tot-price strong').innerText();
+        const original_Price = await newWidg.locator('.sf-tot-price .sf-original-price').innerText();
+        const totalPrice = parseFloat(tot_Price.replace(/[^\d.]/g, ''));
+        const originalPrice = parseFloat(original_Price.replace(/[^\d.]/g, ''));
+        const DiscountAmount = (originalPrice - totalPrice);
+        const productPrice = await newWidg.locator('.sf-product-price').first().innerText();
+        const discountPrice = ((DiscountAmount/productPrice)*100);
+        expect(discountPrice.toString()).toEqual(discountValue);
+        return totalPrice;
     }
+}
+
+async function discountAddedtoCart(newPage,pageName,storeURL,totalPrice){
+    await addToCart(newPage);
+    await NavigateToPage(newPage,'Cart page',storeURL);
+    if(pageName==='Cart page'){
+        const cartItems = await newPage.locator('.cart-items .cart-item');
+        const deleteProduct = await cartItems.filter({
+            has: newPage.locator('.cart-item__name', { hasText: productOnstore })
+        });
+    await deleteProduct.locator('.quantity__button').first().click();
+    await newPage.waitForTimeout(3000);
+    }
+    const tot_Price = await newPage.locator('.totals__total-value').innerText();
+    const cartTotal = parseFloat(tot_Price.replace(/[^\d.]/g, ''));
+    expect(cartTotal).toBe(totalPrice);
+    await deleteFromCart(newPage);
+    await newPage.goBack();
+
+
 }
 async function editverify_subtitle(page,newPage,iframe,Subtitle,widgetID){
     const subtitleBox = await iframe.locator('.Polaris-TextField__Input').nth(1);
@@ -112,6 +143,7 @@ async function editverify_subtitle(page,newPage,iframe,Subtitle,widgetID){
 }
 
 async function discountCombo(iframe,combo){
+    
     switch (combo){
         case 'product':
             await iframe.getByText('Other product discounts').click();
@@ -310,4 +342,5 @@ module.exports = {
     displayStyleCart,
     editverify_Title,
     Verify_variableToCart,
+    discountAddedtoCart,
 }

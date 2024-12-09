@@ -1,12 +1,7 @@
 const { expect } = require('@playwright/test');
 
 async function login(page,userName,passWord,adminTitle){
-    await page.waitForLoadState('load');
-    const loginCard = await page.locator('.login-card ').count();
-    if(loginCard===0){
-        await page.reload();
-    }
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('load');    
     await page.locator('#account_email').fill(userName);
     await page.waitForSelector("[type='submit']", { state: 'visible' });
     await page.locator("[type='submit']").click();

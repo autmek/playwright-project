@@ -19,7 +19,7 @@ module.exports = defineConfig({
       name: 'chromium', // Name of the project
       use: {
         browserName: 'chromium',
-        headless: false, // Browser opens in headed mode
+        headless: false, 
         args: ['--start-minimized'], // Optional args for Chromium
         trace: 'on',
         screenshot: 'only-on-failure',
