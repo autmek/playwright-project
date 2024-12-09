@@ -93,7 +93,7 @@ test('Add variable product from widget to cart', {tag:'@addVariable'},async () =
         widgetID = data.widgetID;
     }
     await NavigateToPage(newPage,pageName,storeURL,productOnstore);
-    await Verify_variableToCart(newPage,widgetID,storeURL);
+    await Verify_variableToCart(newPage,widgetID,pageName,storeURL);
 });
 // 4. Products to recommend
 test.describe('Products to recommend',{tag:'@RecommendProducts'}, async()=>{

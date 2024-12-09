@@ -81,6 +81,7 @@ async function addSpecific(iframe,page,specific,trigger,recom_Products){
    
 }
 async function Discount(iframe,page,en_dis,discount){
+    await iframe.locator('.Polaris-Checkbox__Input').scrollIntoViewIfNeeded();
     const discountCheckbox = await iframe.locator('.Polaris-Checkbox__Input').first();
     const isDiscountChecked = await discountCheckbox.isChecked();
     if ((en_dis === 'enable' && !isDiscountChecked) ){
@@ -143,7 +144,7 @@ async function editverify_subtitle(page,newPage,iframe,Subtitle,widgetID){
 }
 
 async function discountCombo(iframe,combo){
-    
+
     switch (combo){
         case 'product':
             await iframe.getByText('Other product discounts').click();
@@ -292,7 +293,7 @@ async function editverify_Title(iframe,page,newPage,widgetID,newtitle){
     expect(widg_title).toBe(newtitle); 
 
 }
-async function Verify_variableToCart(newPage,widgetID,storeURL){
+async function Verify_variableToCart(newPage,widgetID,pageName,storeURL){
     const newWidg = await WidgetIsDisplayed(newPage,widgetID);
     await newPage.waitForTimeout(2000);
     const productContainers = await newWidg.locator('.sf-product-item');
@@ -315,11 +316,18 @@ async function Verify_variableToCart(newPage,widgetID,storeURL){
     await dropdown.selectOption({ index: 1 });
     const variableProduct = await targetProductContainer.locator('.sf-product-title').textContent();
     const selectedOption = await dropdown.locator('option:nth-child(2)').textContent();
-    const selectVariable = await targetProductContainer.locator('.sf-product-checkbox');
-    await selectVariable.click();
     await newPage.waitForTimeout(2000);
-    await addToCart(newPage);
-    await NavigateToPage(newPage,'Cart page',storeURL);
+    if(pageName==='Cart page'){
+        await newWidg.locator('.sf-fbt-add-to-cart-btn').first().click();
+    }else if(pageName==='Product page'){
+        const selectVariable = await targetProductContainer.locator('.sf-product-checkbox');
+        await selectVariable.click();   
+        await addToCart(newPage); 
+    }
+    const urlnow = await newPage.url();
+    if(! urlnow.includes('cart')){
+        await NavigateToPage(newPage,'Cart page',storeURL);
+    }
     const cartItem = await newPage.locator(`.cart-item__details:has-text("${variableProduct}")`);
     const cartOption = await cartItem.locator('dl .product-option dd').innerText();
     expect(cartOption).toContain(selectedOption);

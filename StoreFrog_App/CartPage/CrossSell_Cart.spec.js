@@ -29,6 +29,7 @@ const {
     displayStyleCart,
     editverify_Title,
     Verify_variableToCart,
+    discountAddedtoCart,
 } = require('../testUtils/CrossSell');
 const {
     titleAlignment,
@@ -43,7 +44,7 @@ const {
 } = require('../testUtils/visualPreference');
 const {
     userName, passWord, adminURL, adminTitle, appName,
-    triggerCollection,productCoupon,orderCoupon,shippingCoupon,
+    triggerCollection,productCoupon,orderCoupon,shippingCoupon,couponComboProduct,
     productOnstore,Main_product,Secondary_product,edit_cartButton,
     edit_discountText,triggerProduct,recom_Products,discount_cent,newSubtitle,
 } = require('../testUtils/constants');
@@ -89,7 +90,20 @@ test('Edit title',{tag:'@EditTitle'}, async()=>{
     await editWidget(iframe,page,widgetID);
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);                 
 });
-test.describe('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
+// 3. Add Variable product from widget to cart
+test('Add variable product from widget to cart', {tag:'@addVariable'},async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CrossellCart.json'))); 
+        widgetID = data.widgetID;
+    }
+    await ReloadandWait_Newpage(newPage)
+    await Verify_variableToCart(newPage,widgetID,pageName,storeURL);
+    await NavigateToPage(newPage,'Product page',storeURL,productOnstore);
+    await addToCart(newPage);
+    await NavigateToPage(newPage,pageName,storeURL);
+});
+// 4. Products to recommend
+test.describe.only('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -118,16 +132,16 @@ test.describe('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
 
         await addSpecific(iframe,page,'Specific product',triggerProduct,recom_Products);
         await Savewidget(iframe,page);
+        await NavigateToPage(newPage,'Product page',storeURL,Main_product);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,pageName,storeURL);
+        await WidgetIsDisplayed(newPage,widgetID);
+        await deleteFromCart(newPage);
         await NavigateToPage(newPage,'Product page',storeURL,Secondary_product);
         await addToCart(newPage);
         await NavigateToPage(newPage,pageName,storeURL);
         await WidgetNotDisplayed(newPage,widgetID);
         await deleteFromCart(newPage);
-        await NavigateToPage(newPage,'Product page',storeURL,Main_product);
-        await addToCart(newPage);
-        await NavigateToPage(newPage,pageName,storeURL);
-        await WidgetIsDisplayed(newPage,widgetID);
-        //await deleteFromCart(newPage);
     });
     
     test.skip('Cross-Sell for specific collection', async()=>{
@@ -159,16 +173,20 @@ test.describe('Discounts',{tag:'@Discounts'},async()=>{
     await WidgetIsDisplayed(newPage,widgetID);
     })
     test('Disable Discount',async()=>{
-        await Discount(iframe,'disable');
+        await Discount(iframe,page,'disable');
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage)
         await verifyDiscountonStore(newPage,widgetID,'disable');
     })
     test('Enable discount',async()=>{
-        await Discount(iframe,'enable',discount_cent);
+        await Discount(iframe,page,'enable',discount_cent);
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage)
-        await verifyDiscountonStore(newPage,widgetID,'enable');
+        const totalPrice = await verifyDiscountonStore(newPage,widgetID,'enable',discount_cent);
+        await discountAddedtoCart(newPage,pageName,storeURL,totalPrice);
+        await NavigateToPage(newPage,'Product page',storeURL,productOnstore);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,pageName,storeURL);    
     })
     test('Edit DiscountText', async()=>{
         await editverify_subtitle(page,newPage,iframe,newSubtitle,widgetID);
