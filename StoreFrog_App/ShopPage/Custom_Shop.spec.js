@@ -77,15 +77,6 @@ test('Create new Custom widget (Onsale products) for shop page',{tag:'@CreateNew
     await ReloadandWait_Newpage(newPage);
     await WidgetIsDisplayed(newPage, widgetID);
 });
-// 2. Add Variable product from widget to cart
-test('Add variable product from widget to cart',{tag:'@addVariable'}, async () => {
-    if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CustomShop.json'))); 
-        widgetID = data.widgetID;
-    }
-    await NavigateToPage(newPage,pageName,storeURL);
-    await Verify_variableToCart(newPage,widgetID,storeURL);
-});
 /*
 3. Products to recommend 
     i). Date (Last 24 hours, Last 7 days, Last 30 days, Last 6 months, Last year)
@@ -317,6 +308,16 @@ test.describe('Customise widget',{tag:'@Customization'}, async()=>{
     });
     
 });
+// 2. Add Variable product from widget to cart
+test('Add variable product from widget to cart',{tag:'@addVariable'}, async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CustomShop.json'))); 
+        widgetID = data.widgetID;
+    }
+    await NavigateToPage(newPage,pageName,storeURL);
+    await Verify_variableToCart(newPage,widgetID,storeURL);
+});
+
 /*
 6. Sort by
     i). Created date (Oldest to Newest/ Newest to Oldest)

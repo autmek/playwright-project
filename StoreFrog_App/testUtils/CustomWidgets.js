@@ -111,7 +111,9 @@ async function CreateNewWidget(page,iframe,appName,pageName,newtitle){
     await NavigatetoApp(page,appName);
     await iframe.getByRole('button', { name: 'Create new recommendation' }).click();
     await iframe.getByText(pageName).click();
-    await iframe.getByText('Custom widget').click();
+    await page.waitForTimeout(1000);
+    await iframe.locator('.sf-widget-card').last().scrollIntoViewIfNeeded();
+    await iframe.getByText('Custom widget').click({force:true});
     //Add widget name 
     await iframe.locator('.Polaris-TextField__Input').fill(newtitle);
     //Selecting Onsale products to recommend
@@ -123,6 +125,8 @@ async function CreateNewWidget(page,iframe,appName,pageName,newtitle){
     const modal = await iframe.locator('.Polaris-Modal-Dialog');
     await expect(modal).toBeVisible();
     await iframe.getByRole('button', { name: 'Okay' }).click();
+    console.log(`✅ ${pageName} - CustomWidget is created`);
+
 
 }
 

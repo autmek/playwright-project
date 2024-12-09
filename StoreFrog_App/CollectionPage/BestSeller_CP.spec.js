@@ -126,15 +126,6 @@ test.describe('Products to Recommend',{tag:'@RecommendProducts'},()=>{
         });
     }
 });
-// 4. Add Variable product from widget to cart
-test('Add variable product from widget to cart',{tag:'@addVariable'}, async () => {
-    if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'BestsellerCP.json'))); 
-        widgetID = data.widgetID;
-    }
-    await NavigateToPage(newPage,pageName,storeURL,undefined,CollectionPage);
-    await Verify_variableToCart(newPage,widgetID,storeURL);
-});
 
 /*
 5. DisplayRules
@@ -330,4 +321,13 @@ test.describe('Customise widget',{tag:'@Customization'}, async()=>{
     test('Responsiveness of the preview section', async()=>{    
         await responsivePreview(iframe,page);
     });
+});
+// 4. Add Variable product from widget to cart
+test('Add variable product from widget to cart',{tag:'@addVariable'}, async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'BestsellerCP.json'))); 
+        widgetID = data.widgetID;
+    }
+    await NavigateToPage(newPage,pageName,storeURL,undefined,CollectionPage);
+    await Verify_variableToCart(newPage,widgetID,storeURL);
 });

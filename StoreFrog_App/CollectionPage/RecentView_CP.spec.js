@@ -96,15 +96,6 @@ test('Edit Widget title',{tag:'@EditTitle'}, async ()=> {
     await editWidget(iframe,page,widgetID);
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);        
 });
-// 3. Add Variable product from widget to cart
-test('Add variable product from widget to cart', {tag:'@addVariable'},async () => {
-    if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'RecentviewCP.json'))); 
-        widgetID = data.widgetID;
-    }
-    await NavigateToPage(newPage,pageName,storeURL,undefined,CollectionPage);
-    await Verify_variableToCart(newPage,widgetID,storeURL);
-});
 
 /*
 4. DisplayRules
@@ -299,4 +290,13 @@ test.describe('Customise widget',{tag:'@Customization'}, async()=>{
     test('Responsiveness of the preview section', async()=>{    
         await responsivePreview(iframe,page);
     });
+});
+// 3. Add Variable product from widget to cart
+test('Add variable product from widget to cart', {tag:'@addVariable'},async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'RecentviewCP.json'))); 
+        widgetID = data.widgetID;
+    }
+    await NavigateToPage(newPage,pageName,storeURL,undefined,CollectionPage);
+    await Verify_variableToCart(newPage,widgetID,storeURL);
 });

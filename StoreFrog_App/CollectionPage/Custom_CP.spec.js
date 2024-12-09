@@ -82,15 +82,6 @@ test('Create new Custom widget (Onsale products) for collection page',{tag:'@Cre
     await ReloadandWait_Newpage(newPage)
     await WidgetIsDisplayed(newPage, widgetID);
 });
-// 2. Add Variable product from widget to cart
-test('Add variable product from widget to cart',{tag:'@addVariable'}, async () => {
-    if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CustomCP.json'))); 
-        widgetID = data.widgetID;
-    }
-    await NavigateToPage(newPage,pageName,storeURL,undefined,CollectionPage);
-    await Verify_variableToCart(newPage,widgetID,storeURL);
-});
 /*
 3. Products to recommend 
     i). Date (Last 24 hours, Last 7 days, Last 30 days, Last 6 months, Last year)
@@ -212,7 +203,7 @@ test.describe('Display Rules',{tag:'@DisplayRules'}, async()=>{
     });
 
     test('Display Rules - Include Collection', async()=>{
-        await ApplyDisplayFilter_CustomWidget(iframe, 'Collection', 'Include', Collection);
+        await ApplyDisplayFilter_CustomWidget(iframe, 'Collection', 'Include', MainCollection);
         await Savewidget(iframe,page);
         await NavigateToPage(newPage,pageName,storeURL,undefined,MainCollection);
         await WidgetIsDisplayed(newPage,widgetID);
@@ -222,7 +213,7 @@ test.describe('Display Rules',{tag:'@DisplayRules'}, async()=>{
     });
     
     test('Display Rules - Exclude Collection', async()=>{
-        await ApplyDisplayFilter_CustomWidget(iframe,'Collection', 'Exclude', Collection);
+        await ApplyDisplayFilter_CustomWidget(iframe,'Collection', 'Exclude', MainCollection);
         await Savewidget(iframe,page);
         await NavigateToPage(newPage,pageName,storeURL,undefined,secondaryCollection);
         await WidgetIsDisplayed(newPage,widgetID);
@@ -352,6 +343,16 @@ test.describe('Customise widget',{tag:'@Customization'}, async()=>{
     });
     
 });
+// 2. Add Variable product from widget to cart
+test('Add variable product from widget to cart',{tag:'@addVariable'}, async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CustomCP.json'))); 
+        widgetID = data.widgetID;
+    }
+    await NavigateToPage(newPage,pageName,storeURL,undefined,CollectionPage);
+    await Verify_variableToCart(newPage,widgetID,storeURL);
+});
+
 /*
 6. Sort by
     i). Created date (Oldest to Newest/ Newest to Oldest)
