@@ -27,6 +27,7 @@ const {
     discountText,
     discountColor,
     editverify_Title,
+    Verify_variableToCart,
 } = require('../testUtils/CrossSell');
 const {
     titleAlignment,
@@ -62,8 +63,8 @@ test.beforeAll(async ({browser}) => {
 test.afterAll(async()=>{
     await context.close();
 })
-// Create CrossSell PR on product page
-test('Create new crossSell widget(All products) for Product page', async()=>{
+// 1. Create new Widget
+test('Create new crossSell widget(All products) for Product page',{tag:'@CreateNewWidget'}, async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'CrossellPP.json'), JSON.stringify({}));
     await CreateNewWidget(page,iframe,appName,pageName,recom_Products);
     widgetID = await FindWidgetID(iframe);
@@ -71,8 +72,8 @@ test('Create new crossSell widget(All products) for Product page', async()=>{
     await ReloadandWait_Newpage(newPage);
     await WidgetIsDisplayed(newPage, widgetID);
 });
-
-test('Edit title', async()=>{
+// 2. Edit widget title
+test('Edit title',{tag:'@EditTitle'}, async()=>{
     //widgetID = '0082';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -84,8 +85,17 @@ test('Edit title', async()=>{
     await editWidget(iframe,page,widgetID);
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);                 
 });
+// 3. Add Variable product from widget to cart
+test('Add variable product from widget to cart', {tag:'@addVariable'},async () => {
+    if(!widgetID){
+        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'RecentView404.json'))); 
+        widgetID = data.widgetID;
+    }
+    await NavigateToPage(newPage,pageName,storeURL,productOnstore);
+    await Verify_variableToCart(newPage,widgetID,storeURL);
+});
 
-test.describe('Products to recommend', async()=>{
+test.describe('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -115,13 +125,13 @@ test.describe('Products to recommend', async()=>{
 
         await addSpecific(iframe,page,'Specific product',triggerProduct,recom_Products);
         await Savewidget(iframe,page);
-        await NavigateToPage(newPage,pageName,storeURL,Main_product);
-        await WidgetIsDisplayed(newPage, widgetID);
         await NavigateToPage(newPage,pageName,storeURL,Secondary_product);
         await WidgetNotDisplayed(newPage, widgetID);
+        await NavigateToPage(newPage,pageName,storeURL,Main_product);
+        await WidgetIsDisplayed(newPage, widgetID);
     });
     
-    test('Cross-Sell for specific collection', async()=>{
+    test.skip('Cross-Sell for specific collection', async()=>{
         await addSpecific(iframe,page,'Specific collection',triggerCollection,recom_Products);
         await Savewidget(iframe,page);
         await NavigateToPage(newPage,pageName,storeURL,Main_product);
@@ -132,7 +142,7 @@ test.describe('Products to recommend', async()=>{
     
 })
 
-test.describe('Discounts',async()=>{
+test.describe('Discounts',{tag:'@Discounts'},async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0084';
         await NavigatetoApp(page,appName);

@@ -4,6 +4,8 @@ const {
     WidgetIsDisplayed,
     Savewidget,
     ReloadandWait_Newpage,
+    addToCart,
+    NavigateToPage,
 } = require('./CommonFunctions');
 const{
     Customise_SaveChanges,
@@ -258,6 +260,41 @@ async function editverify_Title(iframe,page,newPage,widgetID,newtitle){
     expect(widg_title).toBe(newtitle); 
 
 }
+async function Verify_variableToCart(newPage,widgetID,storeURL){
+    const newWidg = await WidgetIsDisplayed(newPage,widgetID);
+    await newPage.waitForTimeout(2000);
+    const productContainers = await newWidg.locator('.sf-product-item');
+    let productIndex = -1;
+    for (let i = 0; i < await productContainers.count(); i++) {
+        const chooseOptionButton = productContainers.nth(i).locator('.sf-product-variants-dropdown');
+        if (await chooseOptionButton.isVisible()) {
+            productIndex = i; 
+            break; 
+        }
+    }
+    if (productIndex === -1) {
+        console.log('❗ No variable products in the recommendation.');
+        return;
+      }
+    const targetProductContainer = productContainers.nth(productIndex);
+    await newPage.waitForTimeout(2000);
+    const dropdown = await targetProductContainer.locator('.sf-product-variants-dropdown');
+    await dropdown.click();
+    await dropdown.selectOption({ index: 1 });
+    const variableProduct = await targetProductContainer.locator('.sf-product-title').textContent();
+    const selectedOption = await dropdown.locator('option:nth-child(2)').textContent();
+    const selectVariable = await targetProductContainer.locator('.sf-product-checkbox');
+    await selectVariable.click();
+    await newPage.waitForTimeout(2000);
+    await addToCart(newPage);
+    await NavigateToPage(newPage,'Cart page',storeURL);
+    const cartItem = await newPage.locator(`.cart-item__details:has-text("${variableProduct}")`);
+    const cartOption = await cartItem.locator('dl .product-option dd').innerText();
+    expect(cartOption).toContain(selectedOption);
+    await deleteFromCart(newPage);
+    await newPage.goBack();
+
+}
 module.exports = { 
     CreateNewWidget,
     deleteCrossSell,
@@ -272,4 +309,5 @@ module.exports = {
     discountColor,
     displayStyleCart,
     editverify_Title,
+    Verify_variableToCart,
 }

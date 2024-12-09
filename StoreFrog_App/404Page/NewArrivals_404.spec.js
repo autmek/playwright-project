@@ -70,7 +70,6 @@ test('Create new NewArrivals widget for 404 page',{tag:'@CreateNewWidget'}, asyn
     await CreateNewWidget(page, iframe, appName,pageName, 'New arrivals');
     widgetID = await FindWidgetID(iframe);
     fs.writeFileSync(path.resolve(__dirname, 'Newarrivals404.json'), JSON.stringify({ widgetID }));
-    console.log('Widget ID is: ', widgetID);
     await ReloadandWait_Newpage(newPage)
     await WidgetIsDisplayed(newPage, widgetID);
 });

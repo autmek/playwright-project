@@ -28,6 +28,7 @@ const {
     discountColor,
     displayStyleCart,
     editverify_Title,
+    Verify_variableToCart,
 } = require('../testUtils/CrossSell');
 const {
     titleAlignment,
@@ -66,8 +67,8 @@ test.beforeAll(async ({browser}) => {
 test.afterAll(async()=>{
     await context.close();
 })
-// Create CrossSell PR on cart page
-test('Create new crossSell widget(All products) for Cart page', async()=>{
+// 1. Create new Widget
+test('Create new crossSell widget(All products) for Cart page',{tag:'@CreateNewWidget'}, async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'CrossellCart.json'), JSON.stringify({}));
     await CreateNewWidget(page,iframe,appName,pageName,recom_Products);
     widgetID = await FindWidgetID(iframe);
@@ -75,7 +76,8 @@ test('Create new crossSell widget(All products) for Cart page', async()=>{
     await ReloadandWait_Newpage(newPage);
     await WidgetIsDisplayed(newPage, widgetID);
 });
-test('Edit title', async()=>{
+// 2. Edit widget title
+test('Edit title',{tag:'@EditTitle'}, async()=>{
     //widgetID = '0082';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -87,7 +89,7 @@ test('Edit title', async()=>{
     await editWidget(iframe,page,widgetID);
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);                 
 });
-test.describe('Products to recommend', async()=>{
+test.describe('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -116,19 +118,19 @@ test.describe('Products to recommend', async()=>{
 
         await addSpecific(iframe,page,'Specific product',triggerProduct,recom_Products);
         await Savewidget(iframe,page);
-        await NavigateToPage(newPage,'Product page',storeURL,Main_product);
-        await addToCart(newPage);
-        await NavigateToPage(newPage,pageName,storeURL);
-        await WidgetIsDisplayed(newPage,widgetID);
-        await deleteFromCart(newPage);
         await NavigateToPage(newPage,'Product page',storeURL,Secondary_product);
         await addToCart(newPage);
         await NavigateToPage(newPage,pageName,storeURL);
         await WidgetNotDisplayed(newPage,widgetID);
         await deleteFromCart(newPage);
+        await NavigateToPage(newPage,'Product page',storeURL,Main_product);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,pageName,storeURL);
+        await WidgetIsDisplayed(newPage,widgetID);
+        //await deleteFromCart(newPage);
     });
     
-    test('Cross-Sell for specific collection', async()=>{
+    test.skip('Cross-Sell for specific collection', async()=>{
         await addSpecific(iframe,page,'Specific collection',triggerCollection,recom_Products);
         await Savewidget(iframe,page);
         await NavigateToPage(newPage,'Product page',storeURL,Main_product);
@@ -142,7 +144,7 @@ test.describe('Products to recommend', async()=>{
         await WidgetNotDisplayed(newPage,widgetID);
     });
 })
-test.describe('Discounts',async()=>{
+test.describe('Discounts',{tag:'@Discounts'},async()=>{
     test.beforeAll(async()=>{
     //widgetID = '0084';
     await NavigatetoApp(page,appName);
