@@ -7,7 +7,7 @@ module.exports = defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 1,
-  workers: 1,
+  workers: 4,
   reporter: [
     ['list'],
     ['html'],
