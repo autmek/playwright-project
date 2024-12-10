@@ -53,6 +53,9 @@ async function FindWidgetID(iframe){
 
 async function editWidget(iframe,page,widgetID){
     await page.waitForTimeout(3000);
+    await page.evaluate(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+    });
     await iframe.locator('.Polaris-DataTable__Table tbody tr').last().waitFor();
     const editIcon = '.sf-edit-div .Polaris-Button .Polaris-Icon__Svg';
     const widgRow = await iframe.locator(`.Polaris-DataTable__Table tbody tr:has(td:has-text("${widgetID}"))`);

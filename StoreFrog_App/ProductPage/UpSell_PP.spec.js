@@ -14,6 +14,7 @@ const{
     ReloadandWait_Newpage,
     NavigateToPage,
     CreateNewWidget,
+    deleteFromCart,
 } = require('../testUtils/CommonFunctions');
 
 const {
@@ -25,6 +26,10 @@ const {
     discountDisplay,
     discountText,
     discountColor,
+    Verify_variableToCart,
+    discountAddedtoCart,
+    discountComboCheck,
+    scheduleDiscount,
 } = require('../testUtils/CrossSell');
 const {
     moreQuantity,
@@ -46,11 +51,10 @@ const {
 } = require('../testUtils/visualPreference');
 const {
     userName, passWord, adminURL, adminTitle, appName,
-    triggerCollection,productCoupon,orderCoupon,shippingCoupon,
-    productOnstore,Main_product,Secondary_product,
+    triggerCollection,productCoupon,orderCoupon,shippingCoupon,couponComboProduct,
+    productOnstore,Main_product,Secondary_product,postCode,
     edit_discountText,triggerProduct,recom_Products,discount_cent,newSubtitle,
     triggerVariant,secondaryVariant,
-
 } = require('../testUtils/constants');
 let context, iframe, widgetID, newPage, page, storeURL;
 const newtitle = 'Updated Upsell - PP';
@@ -72,10 +76,9 @@ test.beforeAll(async ({browser}) => {
 test.afterAll(async()=>{
     await context.close();
 })
-
-test('Create new Upsell widget for Product page', async()=>{
+// 1. Create new Widget
+test('Create new Upsell widget for Product page',{tag:'@CreateNewWidget'}, async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'UpsellPP.json'), JSON.stringify({}));
-    await page.waitForLoadState('load');
     await CreateNewWidget(page,iframe,appName,pageName,'Upsell');
     widgetID = await FindWidgetID(iframe);
     fs.writeFileSync(path.resolve(__dirname, 'UpsellPP.json'), JSON.stringify({ widgetID }));
@@ -83,8 +86,8 @@ test('Create new Upsell widget for Product page', async()=>{
     await addToCart(newPage);
     await WidgetIsDisplayed(newPage, widgetID);
 });
-
-test('Edit widget title', async()=>{
+// 2. Edit widget title
+test('Edit widget title',{tag:'@EditTitle'}, async()=>{
     //widgetID = '0082';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -92,13 +95,12 @@ test('Edit widget title', async()=>{
     if(!widgetID){
         const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'UpsellPP.json'))); 
         widgetID = data.widgetID;
-}
+    }
     await editWidget(iframe,page,widgetID);
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);                 
-
 });
-
-test.describe('More quantity as upsell',async()=>{
+// 3. Products to recommend
+test.describe('More quantity as upsell',{tag:'@RecommendProducts'},async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0097';
         await NavigatetoApp(page,appName);
@@ -107,10 +109,11 @@ test.describe('More quantity as upsell',async()=>{
         if(!widgetID){
             const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'UpsellPP.json'))); 
             widgetID = data.widgetID;
-            }
+        }
         await editWidget(iframe,page,widgetID);
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await NavigateToPage(newPage,pageName,storeURL,productOnstore);
+        await addToCart(newPage);
+        await WidgetIsDisplayed(newPage, widgetID);
     })
     test.beforeEach(async()=>{
         await iframe.locator('.Polaris-Checkbox__Input').first().click();
@@ -118,9 +121,9 @@ test.describe('More quantity as upsell',async()=>{
     test('Specific Product',async()=>{
         await moreQuantity(iframe,page,'Specific products',triggerProduct);
         await Savewidget(iframe,page);
-        await NavigateToPage(newPage,pageName,storeURL,Main_product);
+        await NavigateToPage(newPage,pageName,storeURL,triggerProduct);
         await addToCart(newPage);
-        await sameProductasUpsell(newPage,widgetID,Main_product);
+        await sameProductasUpsell(newPage,widgetID,triggerProduct);
         await NavigateToPage(newPage,pageName,storeURL,Secondary_product);
         await addToCart(newPage);
         await WidgetNotDisplayed(newPage, widgetID);
@@ -139,7 +142,7 @@ test.describe('More quantity as upsell',async()=>{
 
 
 // Higher Priced Variant
-test.describe('Higher Priced Variant', async()=>{
+test.describe('Higher Priced Variant',{tag:'@RecommendProducts'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0097';
         await NavigatetoApp(page,appName);
@@ -150,8 +153,9 @@ test.describe('Higher Priced Variant', async()=>{
             widgetID = data.widgetID;
             }
         await editWidget(iframe,page,widgetID);
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await NavigateToPage(newPage,pageName,storeURL,productOnstore);
+        await addToCart(newPage);
+        await WidgetIsDisplayed(newPage, widgetID);
     })
     test.beforeEach(async()=>{
         await iframe.locator('.Polaris-Checkbox__Input').nth(1).click();
@@ -186,10 +190,8 @@ test.describe('Higher Priced Variant', async()=>{
         await addToCart(newPage);
         await WidgetNotDisplayed(newPage, widgetID);
     })
-
 });
-
-test.describe('Custom Products', async()=>{
+test.describe('Custom Products',{tag:'@RecommendProducts'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0097';
         await NavigatetoApp(page,appName);

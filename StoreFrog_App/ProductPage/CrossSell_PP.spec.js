@@ -194,7 +194,7 @@ test.describe('Discount Combination',{tag:'@Discounts'}, async()=>{
         await Discount(iframe,page,'enable',discount_cent);
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage)
-        //await verifyDiscountonStore(newPage,widgetID,'enable',discount_cent);    
+        await verifyDiscountonStore(newPage,widgetID,'enable',discount_cent);    
     })
     test.afterEach(async()=>{
         await NavigateToPage(newPage,'Cart page',storeURL);

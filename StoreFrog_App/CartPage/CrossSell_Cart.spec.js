@@ -1,4 +1,4 @@
-const {test } = require('@playwright/test');
+const {test,expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 const{
@@ -50,7 +50,7 @@ const {
     productOnstore,Main_product,Secondary_product,edit_cartButton,postCode,
     edit_discountText,triggerProduct,recom_Products,discount_cent,newSubtitle,
 } = require('../testUtils/constants');
-let context, iframe, widgetID, newPage, page, storeURL;
+let context, iframe, widgetID, newPage, page, storeURL,newWidg;
 const newtitle = 'Updated CrossSell - Cart';
 const pageName = 'Cart page';
 test.beforeAll(async ({browser}) => {
@@ -71,7 +71,7 @@ test.afterAll(async()=>{
     await context.close();
 })
 // 1. Create new Widget
-test.skip('Create new crossSell widget(All products) for Cart page',{tag:'@CreateNewWidget'}, async()=>{
+test('Create new crossSell widget(All products) for Cart page',{tag:'@CreateNewWidget'}, async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'CrossellCart.json'), JSON.stringify({}));
     await CreateNewWidget(page,iframe,appName,pageName,recom_Products);
     widgetID = await FindWidgetID(iframe);
@@ -80,7 +80,7 @@ test.skip('Create new crossSell widget(All products) for Cart page',{tag:'@Creat
     await WidgetIsDisplayed(newPage, widgetID);
 });
 // 2. Edit widget title
-test.skip('Edit title',{tag:'@EditTitle'}, async()=>{
+test('Edit title',{tag:'@EditTitle'}, async()=>{
     //widgetID = '0082';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -93,7 +93,7 @@ test.skip('Edit title',{tag:'@EditTitle'}, async()=>{
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);                 
 });
 // 3. Add Variable product from widget to cart
-test.skip('Add variable product from widget to cart', {tag:'@addVariable'},async () => {
+test('Add variable product from widget to cart', {tag:'@addVariable'},async () => {
     if(!widgetID){
         const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CrossellCart.json'))); 
         widgetID = data.widgetID;
@@ -124,7 +124,7 @@ test.describe('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
         await deleteCrossSell(iframe,page);    
     })
     test.afterAll(async()=>{
-        await NavigateToPage(newPage,'Product page',storeURL,Secondary_product);
+        await NavigateToPage(newPage,'Product page',storeURL,productOnstore);
         await addToCart(newPage);
         await NavigateToPage(newPage,pageName,storeURL);
         await iframe.getByRole('button', {name: /Manage bundles/}).click();
@@ -164,7 +164,7 @@ test.describe('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
     });
 })
 // 5. Discounts
-test.describe('Discounts',{tag:'@Discounts'},async()=>{
+test.describe.only('Discounts',{tag:'@Discounts'},async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0084';
         await NavigatetoApp(page,appName);
@@ -175,21 +175,36 @@ test.describe('Discounts',{tag:'@Discounts'},async()=>{
             widgetID = data.widgetID;
             }
         await editWidget(iframe,page,widgetID);
-        await ReloadandWait_Newpage(newPage)
-        await WidgetIsDisplayed(newPage,widgetID);
+        newWidg = await WidgetIsDisplayed(newPage,widgetID);
     })
     test('Disable Discount',async()=>{
         await Discount(iframe,page,'disable');
         await Savewidget(iframe,page);
-        await ReloadandWait_Newpage(newPage)
-        await verifyDiscountonStore(newPage,widgetID,'disable');
+        await ReloadandWait_Newpage(newPage);
+        const discount_onStore = await newWidg.locator('.sf-discount-text');
+        await expect(discount_onStore).toBeHidden();
+
     })
     test('Enable discount',async()=>{
         await Discount(iframe,page,'enable',discount_cent);
         await Savewidget(iframe,page);
-        await ReloadandWait_Newpage(newPage)
-        const totalPrice = await verifyDiscountonStore(newPage,widgetID,'enable',discount_cent);
-        await discountAddedtoCart(newPage,pageName,storeURL,totalPrice);
+        await ReloadandWait_Newpage(newPage);
+        const discount_onStore = await newWidg.locator('.sf-discount-text');
+        await expect(discount_onStore).toBeVisible();
+        await newWidg.locator('.sf-fbt-add-to-cart-btn').first().click();
+        const firstProduct = await newWidg.locator('.sf-product-item').first();
+        const productTitle = await firstProduct.locator('.sf-product-title').innerText();
+        const cartItems = await newPage.locator('.cart-items .cart-item .cart-item__details');
+        const addedProduct = cartItems.filter({
+            has: newPage.locator('.cart-item__name', { hasText: productTitle })
+        });
+        const cartItemOldPrice = await addedProduct.locator('.cart-item__discounted-prices .cart-item__old-price').innerText();
+        const originalPrice = parseFloat(cartItemOldPrice.replace(/[^\d.]/g, ''));
+        const discountedPrice = await addedProduct.locator('.cart-item__discounted-prices .cart-item__final-price').innerText();
+        const finalPrice = parseFloat(discountedPrice.replace(/[^\d.]/g, ''));
+        const DiscountAmount = ((originalPrice - finalPrice)/originalPrice)*100;
+        expect(DiscountAmount.toString()).toEqual(discount_cent);
+        await deleteFromCart(newPage);
         await NavigateToPage(newPage,'Product page',storeURL,productOnstore);
         await addToCart(newPage);
         await NavigateToPage(newPage,pageName,storeURL);    

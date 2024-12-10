@@ -11,7 +11,7 @@ module.exports = defineConfig({
   reporter: [
     ['list'],
     ['html'],
-    ['allure-playwright'],
+    //['allure-playwright'],
   ],
 
   projects: [
@@ -20,7 +20,7 @@ module.exports = defineConfig({
       use: {
         browserName: 'chromium',
         headless: false, 
-        args: ['--start-minimized'], // Optional args for Chromium
+        userAgent: 'Chrome/131.0.6778.109',
         trace: 'on',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
