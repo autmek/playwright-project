@@ -21,7 +21,7 @@ jobs:
       run: npm install
 
     - name: Install Chromium browser only
-      run: npx playwright install chromium@131.0.6778.109
+      run: npx playwright install chromium
 
     - name: Run Playwright tests on Chromium
       run: npx playwright test --project=chromium
