@@ -19,7 +19,7 @@ module.exports = defineConfig({
       name: 'chromium', // Name of the project
       use: {
         browserName: 'chromium',
-        headless: false, 
+        headless: true, 
         userAgent: 'Chrome/131.0.6778.109',
         trace: 'on',
         screenshot: 'only-on-failure',
