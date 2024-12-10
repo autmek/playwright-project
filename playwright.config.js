@@ -11,7 +11,7 @@ module.exports = defineConfig({
   reporter: [
     ['list'],
     ['html'],
-    // ['allure-playwright']
+    ['allure-playwright'],
   ],
 
   projects: [

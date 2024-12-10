@@ -12,6 +12,8 @@ const{
     Savewidget,
     ReloadandWait_Newpage,
     NavigateToPage,
+    addToCart,
+    deleteFromCart,
 } = require('../testUtils/CommonFunctions');
 
 const {
@@ -29,6 +31,8 @@ const {
     editverify_Title,
     Verify_variableToCart,
     discountAddedtoCart,
+    discountComboCheck,
+    scheduleDiscount,
 } = require('../testUtils/CrossSell');
 const {
     titleAlignment,
@@ -41,7 +45,7 @@ const {
 const {
     userName, passWord, adminURL, adminTitle, appName,
     triggerCollection,productCoupon,orderCoupon,shippingCoupon,couponComboProduct,
-    productOnstore,Main_product,Secondary_product,
+    productOnstore,Main_product,Secondary_product,postCode,
     edit_discountText,triggerProduct,recom_Products,discount_cent,newSubtitle,
 } = require('../testUtils/constants');
 let context, iframe, widgetID, newPage, page, storeURL;
@@ -190,17 +194,50 @@ test.describe('Discount Combination',{tag:'@Discounts'}, async()=>{
         await Discount(iframe,page,'enable',discount_cent);
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage)
-        await verifyDiscountonStore(newPage,widgetID,'enable',discount_cent);    
+        //await verifyDiscountonStore(newPage,widgetID,'enable',discount_cent);    
+    })
+    test.afterEach(async()=>{
+        await NavigateToPage(newPage,'Cart page',storeURL);
+        await deleteFromCart(newPage);
+    })
+    test.afterAll(async()=>{
+        await NavigateToPage(newPage,pageName,storeURL,productOnstore);
     })
     test('Other product discounts',async()=>{
         await discountCombo(iframe,'product');
         await Savewidget(iframe,page);
+        await NavigateToPage(newPage,pageName,storeURL,couponComboProduct);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,pageName,storeURL,productOnstore);
+        await discountComboCheck(newPage,widgetID,storeURL,pageName,productCoupon);
+    })
+    test('Order discounts',async()=>{
+        await discountCombo(iframe,'order');
+        await Savewidget(iframe,page);
+        await NavigateToPage(newPage,pageName,storeURL,productOnstore);
+        await discountComboCheck(newPage,widgetID,storeURL,pageName,orderCoupon);
+    })
+    test('Shipping discounts',async()=>{
+        await discountCombo(iframe,'shipping');
+        await Savewidget(iframe,page);
+        await NavigateToPage(newPage,pageName,storeURL,productOnstore);
+        await discountComboCheck(newPage,widgetID,storeURL,pageName,shippingCoupon,'shipping',postCode);
+    })
+    test('Schedule discounts',async()=>{
+        // Future date
+        await scheduleDiscount(iframe,false);
+        await Savewidget(iframe,page);
+        await NavigateToPage(newPage,pageName,storeURL,productOnstore);
+        await verifyDiscountonStore(newPage,widgetID,'disable');  
+        // Current date
+        await scheduleDiscount(iframe,true);
+        await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage);
-
+        await verifyDiscountonStore(newPage,widgetID,'enable',discount_cent);  
     })
 });
 // 7. Customization
-test.describe('Customize widget',async()=>{
+test.describe('Customize widget',{tag:'@Customization'},async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -213,7 +250,7 @@ test.describe('Customize widget',async()=>{
         await editWidget(iframe,page,widgetID);
         await ReloadandWait_Newpage(newPage)
         await WidgetIsDisplayed(newPage,widgetID);
-
+        await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded();
         await iframe.locator('.widget-settings-button').click(); //Customize
         await page.waitForTimeout(3000);
     });

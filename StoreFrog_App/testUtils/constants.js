@@ -74,6 +74,7 @@ const productCoupon = 'productCombo';
 const couponComboProduct = 'Brown Throw Pillows';
 const orderCoupon = 'orderCombo';
 const shippingCoupon = 'shippingCombo';
+const postCode = 'GU10 4LU';
 
 //UpSell
 const triggerVariant = 'Anchor Bracelet';
@@ -90,5 +91,5 @@ module.exports = {
     edit_discountText,triggerProduct,recom_Products,discount_flat,discount_cent,
     triggerCollection,productCoupon,orderCoupon,shippingCoupon,newSubtitle,
     triggerVariant,secondaryVariant,higherPricedVariant,
-    Type,Vendor,couponComboProduct,
+    Type,Vendor,couponComboProduct,postCode,
 }

@@ -81,11 +81,13 @@ async function addSpecific(iframe,page,specific,trigger,recom_Products){
    
 }
 async function Discount(iframe,page,en_dis,discount){
-    await iframe.locator('.Polaris-Checkbox__Input').scrollIntoViewIfNeeded();
+    await iframe.locator('.widget-settings-button').scrollIntoViewIfNeeded();
     const discountCheckbox = await iframe.locator('.Polaris-Checkbox__Input').first();
     const isDiscountChecked = await discountCheckbox.isChecked();
-    if ((en_dis === 'enable' && !isDiscountChecked) ){
-        await discountCheckbox.click({force:true});
+    if (en_dis === 'enable' ){
+        if (!isDiscountChecked) {
+            await discountCheckbox.click({ force: true });
+        }    
         await iframe.locator('.Polaris-TextField__Input').nth(2).fill(discount);
         await page.waitForTimeout(1000);
     }else if((en_dis === 'disable' && isDiscountChecked)) 
@@ -144,18 +146,53 @@ async function editverify_subtitle(page,newPage,iframe,Subtitle,widgetID){
 }
 
 async function discountCombo(iframe,combo){
-
-    switch (combo){
-        case 'product':
-            await iframe.getByText('Other product discounts').click();
-        break;
-        case 'order':
-            await iframe.getByText('Order discounts').click();
-        break;
-        case 'shipping':
-            await iframe.getByText('Shipping discounts').click();
-        break;
+    await iframe.getByText('Other product discounts')[combo === 'product' ? 'check' : 'uncheck']();
+    await iframe.getByText('Order discounts')[combo === 'order' ? 'check' : 'uncheck']();
+    await iframe.getByText('Shipping discounts')[combo === 'shipping' ? 'check' : 'uncheck']();
+}
+async function discountComboCheck(newPage,widgetID,storeURL,pageName,coupon,couponType,postCode){
+    const newWidg = await WidgetIsDisplayed(newPage,widgetID);
+    if(pageName==='Cart page'){
+        await newWidg.locator('.sf-fbt-add-to-cart-btn').first().click();
+    }else if(pageName==='Product page'){
+        await newWidg.locator('.sf-product-checkbox').first().click();
+        await addToCart(newPage);
     }
+    await NavigateToPage(newPage,'Cart page',storeURL);
+    await newPage.locator('#checkout').click();
+    await newPage.waitForTimeout(1000);
+    if(couponType==='shipping'){
+        await newPage.getByPlaceholder('Postcode').fill(postCode);
+    }
+    const giftcardField = await newPage.locator('#gift-card-field');
+    const sellCoupon = await giftcardField.locator('#tag-0');
+    await expect(sellCoupon).toBeVisible();
+    await giftcardField.getByPlaceholder('Discount code').fill(coupon);
+    await newPage.waitForTimeout(3000);
+    await giftcardField.getByRole('button',{name: 'Apply'}).click();
+    await newPage.waitForSelector('#tag-1');
+    const newCoupon = await giftcardField.locator('#tag-1');
+    await expect(newCoupon).toBeVisible();
+}
+async function scheduleDiscount(iframe,ActiveWindow){
+    await iframe.getByText('Schedule discounts').check();
+    const today = new Date();
+    let targetDate = today;
+    if (!ActiveWindow) {
+        targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + 1);
+    }
+    const day = targetDate.getDate();
+    const tomorrow_monthName = targetDate.toLocaleDateString('en-US', { month: 'long' });
+    const today_monthName = today.toLocaleDateString('en-US', { month: 'long' });
+    if (tomorrow_monthName !== today_monthName) {
+        await iframe.locator('.Polaris-DatePicker__Header .Polaris-Button__Icon').nth(1).click();
+    }
+    await iframe.locator('.sf-datepicker-container .Polaris-Box').first().click({force:true});
+    await iframe.locator('.Polaris-DatePicker__Day').nth(day-1).click();  
+
+
+
 }
 async function desktop_displayStyle(iframe,page,newPage,widgetID,displayStyle){
     const display_style = await iframe.locator('select.Polaris-Select__Input').first();
@@ -183,8 +220,7 @@ async function desktop_displayStyle(iframe,page,newPage,widgetID,displayStyle){
             break;
         case 'popup':
             await newPage.getByRole('button',{name :'Add to cart'}).click();
-            newWidg = await WidgetIsDisplayed(newPage,widgetID);
-            const popup = await newWidg.locator('#sf-popup-modal');
+            const popup = await newPage.locator('#sf-popup-modal');
             await expect(popup).toBeVisible();
             break;
         case 'list':
@@ -351,4 +387,6 @@ module.exports = {
     editverify_Title,
     Verify_variableToCart,
     discountAddedtoCart,
+    discountComboCheck,
+    scheduleDiscount,
 }

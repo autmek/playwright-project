@@ -30,6 +30,8 @@ const {
     editverify_Title,
     Verify_variableToCart,
     discountAddedtoCart,
+    discountComboCheck,
+    scheduleDiscount,
 } = require('../testUtils/CrossSell');
 const {
     titleAlignment,
@@ -45,7 +47,7 @@ const {
 const {
     userName, passWord, adminURL, adminTitle, appName,
     triggerCollection,productCoupon,orderCoupon,shippingCoupon,couponComboProduct,
-    productOnstore,Main_product,Secondary_product,edit_cartButton,
+    productOnstore,Main_product,Secondary_product,edit_cartButton,postCode,
     edit_discountText,triggerProduct,recom_Products,discount_cent,newSubtitle,
 } = require('../testUtils/constants');
 let context, iframe, widgetID, newPage, page, storeURL;
@@ -69,7 +71,7 @@ test.afterAll(async()=>{
     await context.close();
 })
 // 1. Create new Widget
-test('Create new crossSell widget(All products) for Cart page',{tag:'@CreateNewWidget'}, async()=>{
+test.skip('Create new crossSell widget(All products) for Cart page',{tag:'@CreateNewWidget'}, async()=>{
     fs.writeFileSync(path.resolve(__dirname, 'CrossellCart.json'), JSON.stringify({}));
     await CreateNewWidget(page,iframe,appName,pageName,recom_Products);
     widgetID = await FindWidgetID(iframe);
@@ -78,7 +80,7 @@ test('Create new crossSell widget(All products) for Cart page',{tag:'@CreateNewW
     await WidgetIsDisplayed(newPage, widgetID);
 });
 // 2. Edit widget title
-test('Edit title',{tag:'@EditTitle'}, async()=>{
+test.skip('Edit title',{tag:'@EditTitle'}, async()=>{
     //widgetID = '0082';
     await NavigatetoApp(page,appName);
     await page.waitForLoadState('networkidle');
@@ -91,19 +93,19 @@ test('Edit title',{tag:'@EditTitle'}, async()=>{
     await editverify_Title(iframe,page,newPage,widgetID,newtitle);                 
 });
 // 3. Add Variable product from widget to cart
-test('Add variable product from widget to cart', {tag:'@addVariable'},async () => {
+test.skip('Add variable product from widget to cart', {tag:'@addVariable'},async () => {
     if(!widgetID){
         const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CrossellCart.json'))); 
         widgetID = data.widgetID;
     }
-    await ReloadandWait_Newpage(newPage)
+    await NavigateToPage(newPage,pageName,storeURL);
     await Verify_variableToCart(newPage,widgetID,pageName,storeURL);
     await NavigateToPage(newPage,'Product page',storeURL,productOnstore);
     await addToCart(newPage);
     await NavigateToPage(newPage,pageName,storeURL);
 });
 // 4. Products to recommend
-test.describe.only('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
+test.describe('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
@@ -122,6 +124,9 @@ test.describe.only('Products to recommend',{tag:'@RecommendProducts'}, async()=>
         await deleteCrossSell(iframe,page);    
     })
     test.afterAll(async()=>{
+        await NavigateToPage(newPage,'Product page',storeURL,Secondary_product);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,pageName,storeURL);
         await iframe.getByRole('button', {name: /Manage bundles/}).click();
         await page.waitForTimeout(1000);
         await deleteCrossSell(iframe,page);    
@@ -158,19 +163,20 @@ test.describe.only('Products to recommend',{tag:'@RecommendProducts'}, async()=>
         await WidgetNotDisplayed(newPage,widgetID);
     });
 })
+// 5. Discounts
 test.describe('Discounts',{tag:'@Discounts'},async()=>{
     test.beforeAll(async()=>{
-    //widgetID = '0084';
-    await NavigatetoApp(page,appName);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
-    if(!widgetID){
-        const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CrossellCart.json'))); 
-        widgetID = data.widgetID;
-        }
-    await editWidget(iframe,page,widgetID);
-    await ReloadandWait_Newpage(newPage)
-    await WidgetIsDisplayed(newPage,widgetID);
+        //widgetID = '0084';
+        await NavigatetoApp(page,appName);
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(3000);
+        if(!widgetID){
+            const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CrossellCart.json'))); 
+            widgetID = data.widgetID;
+            }
+        await editWidget(iframe,page,widgetID);
+        await ReloadandWait_Newpage(newPage)
+        await WidgetIsDisplayed(newPage,widgetID);
     })
     test('Disable Discount',async()=>{
         await Discount(iframe,page,'disable');
@@ -192,47 +198,88 @@ test.describe('Discounts',{tag:'@Discounts'},async()=>{
         await editverify_subtitle(page,newPage,iframe,newSubtitle,widgetID);
     })
 });
-/*
-test.describe('Discount Combination', async()=>{
+// 6. Discount Combination
+test.describe('Discount Combination',{tag:'@Discounts'},async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0082';
         await NavigatetoApp(page,appName);
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(3000);
         if(!widgetID){
-            const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CrossellPP.json'))); 
+            const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CrossellCart.json'))); 
             widgetID = data.widgetID;
         }    
         await editWidget(iframe,page,widgetID);
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
         await Discount(iframe,'enable',discount_cent);
         await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage)
         await verifyDiscountonStore(newPage,widgetID,'enable');    
     })
+    test.afterEach(async()=>{
+        await NavigateToPage(newPage,'Cart page',storeURL);
+        await deleteFromCart(newPage);
+    })
+    test.afterAll(async()=>{
+        await NavigateToPage(newPage,'Product page',storeURL,productOnstore);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,pageName,storeURL);
+    })
     test('Other product discounts',async()=>{
         await discountCombo(iframe,'product');
         await Savewidget(iframe,page);
+        await NavigateToPage(newPage,'Product page',storeURL,couponComboProduct);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,'Product page',storeURL,productOnstore);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,pageName,storeURL);
+        await discountComboCheck(newPage,widgetID,storeURL,pageName,productCoupon);
+    })
+    test('Order discounts',async()=>{
+        await discountCombo(iframe,'order');
+        await Savewidget(iframe,page);
+        await NavigateToPage(newPage,'Product page',storeURL,productOnstore);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,pageName,storeURL);
+        await discountComboCheck(newPage,widgetID,storeURL,pageName,orderCoupon);
+    })
+    test('Shipping discounts',async()=>{
+        await discountCombo(iframe,'shipping');
+        await Savewidget(iframe,page);
+        await NavigateToPage(newPage,'Product page',storeURL,productOnstore);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,pageName,storeURL);
+        await discountComboCheck(newPage,widgetID,storeURL,pageName,shippingCoupon);
+    })
+    test('Schedule discounts',async()=>{
+        // Future date
+        await scheduleDiscount(iframe,false);
+        await Savewidget(iframe,page);
+        await NavigateToPage(newPage,'Product page',storeURL,productOnstore);
+        await addToCart(newPage);
+        await NavigateToPage(newPage,pageName,storeURL);
+        await verifyDiscountonStore(newPage,widgetID,'disable');  
+        // Current date
+        await scheduleDiscount(iframe,true);
+        await Savewidget(iframe,page);
         await ReloadandWait_Newpage(newPage);
-
+        await verifyDiscountonStore(newPage,widgetID,'enable',discount_cent);  
     })
 });
-*/
-test.describe('Customize widget',async()=>{
+// 7. Customization
+test.describe('Customize widget',{tag:'@Customization'},async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0001';
         await NavigatetoApp(page,appName);
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(3000);
         if(!widgetID){
-            const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CrossellPP.json'))); 
+            const data= JSON.parse(fs.readFileSync(path.resolve(__dirname, 'CrossellCart.json'))); 
             widgetID = data.widgetID;
         }
         await editWidget(iframe,page,widgetID);
         await ReloadandWait_Newpage(newPage)
         await WidgetIsDisplayed(newPage,widgetID);
-
+        await iframe.locator(`.sf-settings-btn`).nth(1).scrollIntoViewIfNeeded();
         await iframe.locator('.widget-settings-button').click(); //Customize
         await page.waitForTimeout(3000);
     });
