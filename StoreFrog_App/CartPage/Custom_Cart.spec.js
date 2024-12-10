@@ -217,7 +217,7 @@ test.describe('Display Rules',{tag:'@DisplayRules'}, async()=>{
         await deleteFromCart(newPage);
     });
     
-    test.only('Display Rules - Exclude Category', async()=>{
+    test('Display Rules - Exclude Category', async()=>{
         await ApplyDisplayFilter_CustomWidget(iframe,'Category', 'Exclude', Category);
         await Savewidget(iframe,page);
         await NavigateToPage(newPage,'Product page',storeURL,Secondary_product);

@@ -164,7 +164,7 @@ test.describe('Products to recommend',{tag:'@RecommendProducts'}, async()=>{
     });
 })
 // 5. Discounts
-test.describe.only('Discounts',{tag:'@Discounts'},async()=>{
+test.describe('Discounts',{tag:'@Discounts'},async()=>{
     test.beforeAll(async()=>{
         //widgetID = '0084';
         await NavigatetoApp(page,appName);
